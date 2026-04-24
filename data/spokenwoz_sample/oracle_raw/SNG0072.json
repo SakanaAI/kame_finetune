@@ -1,0 +1,222 @@
+[
+  {
+    "timestamp_ms": 5000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i",
+    "prediction": "Hello, I’m here to help you today. Please let me know what issue you’re experiencing or what assistance you need with your account or product.",
+    "total_word_count": 11,
+    "trigger_word": "i",
+    "recent_words": "i help you hi i",
+    "current_spoken_ratio": 0.10526315789473684,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 10000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city",
+    "prediction": "Sure, what kind of assistance do you need while you're in that area today",
+    "total_word_count": 23,
+    "trigger_word": "city",
+    "recent_words": "southern part of the city",
+    "current_spoken_ratio": 0.7368421052631579,
+    "channel": 1,
+    "hint": "sure what kind of"
+  },
+  {
+    "timestamp_ms": 15000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of",
+    "prediction": "I’d prefer a three star guesthouse if you have any nearby that’s comfortable and good value.",
+    "total_word_count": 32,
+    "trigger_word": "of",
+    "recent_words": "health sure what kind of",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "i prefer a three star guesthouse"
+  },
+  {
+    "timestamp_ms": 20000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse",
+    "prediction": "Of course, and is there anything else you need, like nearby restaurants or transportation options?",
+    "total_word_count": 38,
+    "trigger_word": "guesthouse",
+    "recent_words": "prefer a three star guesthouse",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "of course and what else"
+  },
+  {
+    "timestamp_ms": 25000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course",
+    "prediction": "Thanks. Also, can you check if they have free Wi-Fi, parking, and maybe breakfast included?",
+    "total_word_count": 40,
+    "trigger_word": "course",
+    "recent_words": "three star guesthouse of course",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "um can you help me check that uh if they have free internet uh free parking lock"
+  },
+  {
+    "timestamp_ms": 30000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh",
+    "prediction": "No problem, just give me a second and I’ll see if I can find a guesthouse in that area with the amenities you're looking for.",
+    "total_word_count": 51,
+    "trigger_word": "uh",
+    "recent_words": "help me check that uh",
+    "current_spoken_ratio": 0.6153846153846154,
+    "channel": 1,
+    "hint": "no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi"
+  },
+  {
+    "timestamp_ms": 35000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh",
+    "prediction": "No problem, give me a second I’ll check for you yes I found one guesthouse with free internet and parking",
+    "total_word_count": 57,
+    "trigger_word": "uh",
+    "recent_words": "they have free internet uh",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi"
+  },
+  {
+    "timestamp_ms": 40000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem",
+    "prediction": "Yes, I’d also like to know if they serve breakfast and if they are close to public transportation.",
+    "total_word_count": 62,
+    "trigger_word": "problem",
+    "recent_words": "free parking lock no problem",
+    "current_spoken_ratio": 0.4,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 45000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes",
+    "prediction": "That's great, thank you. Could you also provide me with the address and phone number for the guesthouse please",
+    "total_word_count": 67,
+    "trigger_word": "yes",
+    "recent_words": "wait a second uh yes",
+    "current_spoken_ratio": 0.5833333333333334,
+    "channel": 0,
+    "hint": "okay great can you give me the address and phone number"
+  },
+  {
+    "timestamp_ms": 50000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free",
+    "prediction": "Great, could you please give me the address and contact number for that guesthouse",
+    "total_word_count": 76,
+    "trigger_word": "free",
+    "recent_words": "uh guesthouse that with free",
+    "current_spoken_ratio": 0.9411764705882353,
+    "channel": 0,
+    "hint": "okay great can you give me the address and phone number"
+  },
+  {
+    "timestamp_ms": 55000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me",
+    "prediction": "The guesthouse is called Bridge Guest House and it's located at 151 Hills Road near the bridge area.",
+    "total_word_count": 84,
+    "trigger_word": "me",
+    "recent_words": "great can you give me",
+    "current_spoken_ratio": 0.5454545454545454,
+    "channel": 1,
+    "hint": "the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house"
+  },
+  {
+    "timestamp_ms": 60000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the",
+    "prediction": "Yes, please. And could you also give me the phone number for that guesthouse?",
+    "total_word_count": 90,
+    "trigger_word": "the",
+    "recent_words": "address and phone number the",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "oh yes and phone number please"
+  },
+  {
+    "timestamp_ms": 65000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5",
+    "prediction": "Thanks, that’s helpful. Could you also give me the phone number for the guesthouse please?",
+    "total_word_count": 100,
+    "trigger_word": "5",
+    "recent_words": "is on the 1 5",
+    "current_spoken_ratio": 0.5789473684210527,
+    "channel": 0,
+    "hint": "oh yes and phone number please"
+  },
+  {
+    "timestamp_ms": 70000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh",
+    "prediction": "Yes, the phone number is 01234 567890 if you need to book or ask any more questions.",
+    "total_word_count": 109,
+    "trigger_word": "oh",
+    "recent_words": "called bridge guest house oh",
+    "current_spoken_ratio": 0.5,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 75000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number",
+    "prediction": "The phone number is 01223 247942 again that's zero one two two three two four seven nine four two let me know if you need anything else",
+    "total_word_count": 113,
+    "trigger_word": "number",
+    "recent_words": "oh yes and phone number",
+    "current_spoken_ratio": 0.8333333333333334,
+    "channel": 1,
+    "hint": "1223247942"
+  },
+  {
+    "timestamp_ms": 80000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number please",
+    "prediction": "The phone number for Bridge Guest House is 01223 247942. Do you need any help with directions or other services?",
+    "total_word_count": 114,
+    "trigger_word": "please",
+    "recent_words": "yes and phone number please",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "1223247942"
+  },
+  {
+    "timestamp_ms": 85000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number please\nB: 1223247942\nA: okay i got it",
+    "prediction": "Would you like to go ahead and book the guesthouse now or need more information about the rates and availability today",
+    "total_word_count": 119,
+    "trigger_word": "it",
+    "recent_words": "1223247942 okay i got it",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "do you want to make booking"
+  },
+  {
+    "timestamp_ms": 90000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number please\nB: 1223247942\nA: okay i got it\nB: do you want to make booking",
+    "prediction": "No, that's okay, I'm just looking for some information, but thank you very much for your help.",
+    "total_word_count": 125,
+    "trigger_word": "booking",
+    "recent_words": "you want to make booking",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "uh no i'm good just for the information thank you"
+  },
+  {
+    "timestamp_ms": 95000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number please\nB: 1223247942\nA: okay i got it\nB: do you want to make booking\nA: uh no i'm good just for the information thank",
+    "prediction": "Great, I’m glad I could help. Have a nice day and safe travels in Cambridge.",
+    "total_word_count": 134,
+    "trigger_word": "thank",
+    "recent_words": "just for the information thank",
+    "current_spoken_ratio": 0.9,
+    "channel": 1,
+    "hint": "you will will you will come thanks for calling"
+  },
+  {
+    "timestamp_ms": 100000,
+    "conversation_context": "A: hello\nB: hi customer service how can i help you\nA: hi i am traveling in cambridge and in the southern part of the city do you find a health\nB: sure what kind of\nA: i prefer a three star guesthouse\nB: of course and what else\nA: um can you help me check that uh if they have free internet uh free parking lock\nB: no problem wait a second uh yes i can find 1 uh guesthouse that with free parking wifi\nA: okay great can you give me the address and phone number\nB: the address on the bridge gap is on the 1 5 1 hills road it's called bridge guest house\nA: oh yes and phone number please\nB: 1223247942\nA: okay i got it\nB: do you want to make booking\nA: uh no i'm good just for the information thank you\nB: you will will you will come thanks for calling\nA: bye bye",
+    "prediction": "Thank you for calling, have a great day and enjoy your stay in Cambridge. Goodbye!",
+    "total_word_count": 146,
+    "trigger_word": "bye",
+    "recent_words": "thanks for calling bye bye",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "bye bye"
+  }
+]

@@ -1,0 +1,189 @@
+[
+  {
+    "timestamp_ms": 10000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's",
+    "prediction": "Hi there, I was hoping you could help me find some information about my account or maybe assist with a recent issue I've had",
+    "total_word_count": 15,
+    "trigger_word": "it's",
+    "recent_words": "some assistance please hi it's",
+    "current_spoken_ratio": 0.15384615384615385,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 15000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd",
+    "prediction": "Sure, I can help you with that. Please tell me what specific assistance you're looking for today.",
+    "total_word_count": 28,
+    "trigger_word": "i'd",
+    "recent_words": "i help you yes i'd",
+    "current_spoken_ratio": 0.2857142857142857,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 20000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right",
+    "prediction": "Great, I’d like to book a taxi for tomorrow morning around nine o'clock if possible",
+    "total_word_count": 39,
+    "trigger_word": "right",
+    "recent_words": "i can do that right",
+    "current_spoken_ratio": 0.4,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 25000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling",
+    "prediction": "Yes, I need the taxi to arrive around three in the afternoon.",
+    "total_word_count": 51,
+    "trigger_word": "traveling",
+    "recent_words": "you are plan um traveling",
+    "current_spoken_ratio": 0.8181818181818182,
+    "channel": 0,
+    "hint": "the taxi should arrive by 3 o'clock in the afternoon"
+  },
+  {
+    "timestamp_ms": 30000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by",
+    "prediction": "The taxi should arrive by 3 PM, and do you need it for just a one-way trip or a return as well?",
+    "total_word_count": 60,
+    "trigger_word": "by",
+    "recent_words": "the taxi should arrive by",
+    "current_spoken_ratio": 0.5555555555555556,
+    "channel": 1,
+    "hint": "ok 15:00 and what would be something else like the itinerary"
+  },
+  {
+    "timestamp_ms": 35000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok",
+    "prediction": "Yes, I’ll be coming from the Ashley Hotel and I need the taxi to arrive right on time at three in the afternoon",
+    "total_word_count": 66,
+    "trigger_word": "ok",
+    "recent_words": "o'clock in the afternoon ok",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "yes i'll be coming from the ashley hotel"
+  },
+  {
+    "timestamp_ms": 40000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the",
+    "prediction": "I'll be coming from the Ashley Hotel, so please arrange the pickup from there around 3 pm.",
+    "total_word_count": 75,
+    "trigger_word": "the",
+    "recent_words": "be something else like the",
+    "current_spoken_ratio": 0.9090909090909091,
+    "channel": 0,
+    "hint": "yes i'll be coming from the ashley hotel"
+  },
+  {
+    "timestamp_ms": 45000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel",
+    "prediction": "Got it, the pickup from Ashley Hotel at 3 will be scheduled. Are you heading to a specific destination in Cambridge?",
+    "total_word_count": 84,
+    "trigger_word": "hotel",
+    "recent_words": "coming from the ashley hotel",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "okay the departure place has been confirmed and how about the destination"
+  },
+  {
+    "timestamp_ms": 50000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the",
+    "prediction": "The main thing now is figuring out where I want the taxi to take me once I arrive",
+    "total_word_count": 95,
+    "trigger_word": "the",
+    "recent_words": "confirmed and how about the",
+    "current_spoken_ratio": 0.9166666666666666,
+    "channel": 0,
+    "hint": "the destination is the hard part"
+  },
+  {
+    "timestamp_ms": 55000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard",
+    "prediction": "Great, so the pickup time and destination are all set. Could I also get your contact number to confirm the booking?",
+    "total_word_count": 101,
+    "trigger_word": "hard",
+    "recent_words": "the destination is the hard",
+    "current_spoken_ratio": 0.8333333333333334,
+    "channel": 1,
+    "hint": "okay perfect so the itinerary and time has been confirmed may i have your phone number please"
+  },
+  {
+    "timestamp_ms": 60000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been",
+    "prediction": "Uh, my phone number is zero three eight seven six five four three two one.",
+    "total_word_count": 111,
+    "trigger_word": "been",
+    "recent_words": "itinerary and time has been",
+    "current_spoken_ratio": 0.5294117647058824,
+    "channel": 0,
+    "hint": "um my phone number is 0 3 8"
+  },
+  {
+    "timestamp_ms": 65000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone",
+    "prediction": "Sure, I can look that up for you. What's the best number to reach you on today",
+    "total_word_count": 122,
+    "trigger_word": "phone",
+    "recent_words": "number please um my phone",
+    "current_spoken_ratio": 0.375,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 70000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone number is 0 3 8\nB: yes go ahead please\nA: 3 0",
+    "prediction": "Great, I have your phone number as 03830, and I'll now confirm the booking for the taxi to arrive at 3 PM from Ashley Hotel to your destination.",
+    "total_word_count": 133,
+    "trigger_word": "0",
+    "recent_words": "go ahead please 3 0",
+    "current_spoken_ratio": 0.6666666666666666,
+    "channel": 1,
+    "hint": "okay what about next"
+  },
+  {
+    "timestamp_ms": 75000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone number is 0 3 8\nB: yes go ahead please\nA: 3 0 1\nB: okay what about next\nA: 6 1 8 7\nB: it's",
+    "prediction": "My destination is the Cambridge Conference Center at Trumpington Street. Please make sure the taxi arrives on time.",
+    "total_word_count": 143,
+    "trigger_word": "it's",
+    "recent_words": "6 1 8 7 it's",
+    "current_spoken_ratio": 0.05263157894736842,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 80000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone number is 0 3 8\nB: yes go ahead please\nA: 3 0 1\nB: okay what about next\nA: 6 1 8 7\nB: it's perfect your phone number is there anything else you want to know about if you're a taxi",
+    "prediction": "Yes, I also wanted to ask about the type of taxi cars available for the booking",
+    "total_word_count": 160,
+    "trigger_word": "taxi",
+    "recent_words": "about if you're a taxi",
+    "current_spoken_ratio": 0.9473684210526315,
+    "channel": 0,
+    "hint": "uh yes what is the car type of the taxi"
+  },
+  {
+    "timestamp_ms": 85000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone number is 0 3 8\nB: yes go ahead please\nA: 3 0 1\nB: okay what about next\nA: 6 1 8 7\nB: it's perfect your phone number is there anything else you want to know about if you're a taxi booking\nA: uh yes what is the car type of the taxi\nB: uh the car tax has been",
+    "prediction": "All right, that sounds good. Thank you for your help, I appreciate it.",
+    "total_word_count": 177,
+    "trigger_word": "been",
+    "recent_words": "the car tax has been",
+    "current_spoken_ratio": 0.6666666666666666,
+    "channel": 0,
+    "hint": "all right thank you"
+  },
+  {
+    "timestamp_ms": 90000,
+    "conversation_context": "A: hi there this is john ben way uh i need some assistance please\nB: hi it's for customer service center of cambridge how can i help you\nA: yes i'd like to book a taxi\nB: yes i can do that right away for you um may i know you are plan um traveling in cambridge for taxi\nA: the taxi should arrive by 3 o'clock in the afternoon\nB: ok 15:00 and what would be something else like the itinerary\nA: yes i'll be coming from the ashley hotel\nB: okay the departure place has been confirmed and how about the destination\nA: the destination is the hard part\nB: okay perfect so the itinerary and time has been confirmed may i have your phone number please\nA: um my phone number is 0 3 8\nB: yes go ahead please\nA: 3 0 1\nB: okay what about next\nA: 6 1 8 7\nB: it's perfect your phone number is there anything else you want to know about if you're a taxi booking\nA: uh yes what is the car type of the taxi\nB: uh the car tax has been confirmed at all\nA: all right thank you\nB: okay i anything else i",
+    "prediction": "That should be all, thank you for your help and have a great day",
+    "total_word_count": 189,
+    "trigger_word": "i",
+    "recent_words": "okay i anything else i",
+    "current_spoken_ratio": 0.5555555555555556,
+    "channel": 0,
+    "hint": "i know that would be all"
+  }
+]

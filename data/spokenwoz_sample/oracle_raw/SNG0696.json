@@ -1,0 +1,233 @@
+[
+  {
+    "timestamp_ms": 5000,
+    "conversation_context": "A: hi hello is nan's customer",
+    "prediction": "Hello, yes this is the customer service center, how can I assist you today with nan's account or any other queries",
+    "total_word_count": 5,
+    "trigger_word": "customer",
+    "recent_words": "hi hello is nan's customer",
+    "current_spoken_ratio": 0.7142857142857143,
+    "channel": 1,
+    "hint": "hi this is the customers of the center how are you today"
+  },
+  {
+    "timestamp_ms": 10000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm",
+    "prediction": "I'm glad to hear that, how can I assist you today with your service needs",
+    "total_word_count": 20,
+    "trigger_word": "i'm",
+    "recent_words": "how are you today i'm",
+    "current_spoken_ratio": 0.2,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 15000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may",
+    "prediction": "Yes, I'm actually looking to book a taxi for tonight and I need some assistance with the schedule.",
+    "total_word_count": 33,
+    "trigger_word": "may",
+    "recent_words": "thanks for asking how may",
+    "current_spoken_ratio": 0.75,
+    "channel": 0,
+    "hint": "yes i'm i'm looking for a taxi booking real happy"
+  },
+  {
+    "timestamp_ms": 20000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi",
+    "prediction": "Ah yes of course, where would you like the taxi to pick you up from today",
+    "total_word_count": 43,
+    "trigger_word": "taxi",
+    "recent_words": "i'm looking for a taxi",
+    "current_spoken_ratio": 0.7,
+    "channel": 1,
+    "hint": "ah yes of course where would you departed from"
+  },
+  {
+    "timestamp_ms": 25000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from",
+    "prediction": "I’d like to depart from Wagga now and go to the city center.",
+    "total_word_count": 55,
+    "trigger_word": "from",
+    "recent_words": "where would you departed from",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "i would like to depart from wagga map"
+  },
+  {
+    "timestamp_ms": 30000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you",
+    "prediction": "I would like to go to the city center please and also need it for tomorrow morning",
+    "total_word_count": 68,
+    "trigger_word": "you",
+    "recent_words": "okay and then where you",
+    "current_spoken_ratio": 0.5,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 35000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay",
+    "prediction": "Great, I need a taxi for pickup around 7 pm to the theater in town. Can you help me with that booking?",
+    "total_word_count": 83,
+    "trigger_word": "okay",
+    "recent_words": "mom for the theater okay",
+    "current_spoken_ratio": 0.07692307692307693,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 40000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi",
+    "prediction": "I’d like it to be early in the morning around two thirty, if possible, so I can catch a show afterward.",
+    "total_word_count": 95,
+    "trigger_word": "taxi",
+    "recent_words": "like to have your taxi",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "i will get to early after two thirty in the morning"
+  },
+  {
+    "timestamp_ms": 45000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the",
+    "prediction": "So you're departing from Wagga Map and want to arrive early after 2.30 in the afternoon, heading to the theater in Momfore.",
+    "total_word_count": 105,
+    "trigger_word": "the",
+    "recent_words": "after two thirty in the",
+    "current_spoken_ratio": 0.9090909090909091,
+    "channel": 1,
+    "hint": "okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct"
+  },
+  {
+    "timestamp_ms": 50000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to",
+    "prediction": "I would like to confirm the booking for around 2.30 in the morning, please. Please make sure it arrives on time.",
+    "total_word_count": 115,
+    "trigger_word": "to",
+    "recent_words": "guatemala and then go to",
+    "current_spoken_ratio": 0.47368421052631576,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 55000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes",
+    "prediction": "Great, I’ll arrange a taxi to pick you up from Wagga Map after 2.30 in the morning to go to the theater in Mom.",
+    "total_word_count": 126,
+    "trigger_word": "yes",
+    "recent_words": "morning is that correct yes",
+    "current_spoken_ratio": 0.5,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 60000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i",
+    "prediction": "Great, please hold on a moment while I confirm your booking details for you.",
+    "total_word_count": 138,
+    "trigger_word": "i",
+    "recent_words": "book taxi ah yes i",
+    "current_spoken_ratio": 0.21428571428571427,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 65000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time",
+    "prediction": "Great, thank you. Could you please tell me the type of card I should use for the payment?",
+    "total_word_count": 149,
+    "trigger_word": "time",
+    "recent_words": "arrive on the required time",
+    "current_spoken_ratio": 1.0,
+    "channel": 0,
+    "hint": "okay and may i get the card type please"
+  },
+  {
+    "timestamp_ms": 70000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of",
+    "prediction": "Thank you, I will use my credit card for the payment. Please let me know if you need any more information from me.",
+    "total_word_count": 161,
+    "trigger_word": "of",
+    "recent_words": "type please ah yes of",
+    "current_spoken_ratio": 0.42857142857142855,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 75000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it",
+    "prediction": "Sure, I'll just need your contact number to confirm the booking details with you.",
+    "total_word_count": 172,
+    "trigger_word": "it",
+    "recent_words": "has okay i got it",
+    "current_spoken_ratio": 0.7777777777777778,
+    "channel": 1,
+    "hint": "yeah and may i know your telephone number"
+  },
+  {
+    "timestamp_ms": 80000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay",
+    "prediction": "Great, I have your phone number now. Is there anything else I can assist you with for your booking today",
+    "total_word_count": 183,
+    "trigger_word": "okay",
+    "recent_words": "know your telephone number okay",
+    "current_spoken_ratio": 0.14285714285714285,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 85000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay on my telephone number uh is 3",
+    "prediction": "Thank you. Please hold on for a moment while I confirm your booking.",
+    "total_word_count": 190,
+    "trigger_word": "3",
+    "recent_words": "telephone number uh is 3",
+    "current_spoken_ratio": 0.8888888888888888,
+    "channel": 1,
+    "hint": "370 please go ahead"
+  },
+  {
+    "timestamp_ms": 90000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay on my telephone number uh is 3 7\nB: 370 please go ahead\nA: and 3",
+    "prediction": "Thank you, I will confirm your booking and send you the details shortly. Have a great day and safe journey.",
+    "total_word_count": 197,
+    "trigger_word": "3",
+    "recent_words": "please go ahead and 3",
+    "current_spoken_ratio": 0.5,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 95000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay on my telephone number uh is 3 7\nB: 370 please go ahead\nA: and 3 1 8\nB: 370318 please go ahead\nA: and 0",
+    "prediction": "Thank you. I've noted down your number as 3703180 and I will confirm your booking now. Everything's set for your ride.",
+    "total_word_count": 205,
+    "trigger_word": "0",
+    "recent_words": "please go ahead and 0",
+    "current_spoken_ratio": 0.6666666666666666,
+    "channel": 1,
+    "hint": "3703180482 i already mark it down in the system do you still need me on anything else"
+  },
+  {
+    "timestamp_ms": 100000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay on my telephone number uh is 3 7\nB: 370 please go ahead\nA: and 3 1 8\nB: 370318 please go ahead\nA: and 0 4 8 2\nB: 3703180482 i already mark it down",
+    "prediction": "Thank you very much for all the help. I appreciate it. Please confirm the booking details for me.",
+    "total_word_count": 214,
+    "trigger_word": "down",
+    "recent_words": "i already mark it down",
+    "current_spoken_ratio": 0.35294117647058826,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 105000,
+    "conversation_context": "A: hi hello is nan's customer service center\nB: hi this is the customers of the center how are you today\nA: i'm good thanks and you\nB: yes i'm pretty wow thanks for asking how may i help you\nA: yes i'm i'm looking for a taxi booking real happy\nB: ah yes of course where would you departed from\nA: i would like to depart from wagga map\nB: okay and then where you would like to go to\nA: i want to go to mom for the theater\nB: okay no problem and then when would you like to have your taxi\nA: i will get to early after two thirty in the morning\nB: okay so departed from guatemala and then go to motorcycle live after two in the morning is that correct\nA: yes the information is correct and coming to book taxi\nB: ah yes i already booked your car it should arrive on the required time\nA: okay and may i get the card type please\nB: ah yes of course it's a lexus\nA: the food has okay i got it thank you\nB: yeah and may i know your telephone number\nA: okay on my telephone number uh is 3 7\nB: 370 please go ahead\nA: and 3 1 8\nB: 370318 please go ahead\nA: and 0 4 8 2\nB: 3703180482 i already mark it down in the system do you still need me on anything else\nA: oh i think",
+    "prediction": "Great, I will confirm your booking now, and the driver will be there at your specified time. Thank you for choosing our service.",
+    "total_word_count": 228,
+    "trigger_word": "think",
+    "recent_words": "anything else oh i think",
+    "current_spoken_ratio": 0.25,
+    "channel": 1,
+    "hint": ""
+  }
+]

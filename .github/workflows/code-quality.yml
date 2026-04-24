@@ -1,0 +1,33 @@
+name: Code Quality
+
+on:
+  push:
+  pull_request:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.12'
+
+      - name: Sync dependencies (dev)
+        run: uv sync --python 3.12 --group dev
+
+      - name: Lint code with Ruff
+        run: uv run ruff check --output-format=github .
+
+      - name: Format code with Ruff
+        run: uv run ruff format --check .
+
+      - name: Run unit tests
+        run: uv run pytest
+
+      - name: Type check with Mypy (non-blocking)
+        run: uv run mypy .
+        continue-on-error: true

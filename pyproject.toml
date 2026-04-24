@@ -1,0 +1,91 @@
+[project]
+name = "kame-finetune"
+version = "0.1.0"
+description = "Fine-tuning KAME models on your own spoken dialogue data"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate==1.1.1",
+    "datasets==3.1.0",
+    "deepspeed==0.15.4",
+    "huggingface-hub>=0.24.7",
+    "kame-model",
+    "numpy==2.1.3",
+    "pandas==2.3.3",
+    "safetensors==0.4.5",
+    "sentencepiece==0.2.0",
+    "soundfile>=0.12.1",
+    "torch>=2.4.1",
+    "torchaudio>=2.4.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.46.1",
+    "wandb>=0.18.5",
+]
+license = "Apache-2.0"
+license-files = ["LICENSE*"]
+
+[project.optional-dependencies]
+oracle = [
+    "openai>=1.93.0",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu121", marker = "platform_system != 'Darwin'"},
+]
+torchaudio = [
+    { index = "pytorch-cu121", marker = "platform_system != 'Darwin'"},
+]
+
+"kame-model" = { git = "https://github.com/SakanaAI/kame.git", rev = "1a69ee29dbd201d400f841459d87871154881047"}
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+    "N",  # pep8-naming
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "PYI", # flake8-pyi
+]
+ignore = [
+    "C901",  # function is too complex
+    "E501",  # line too long
+    "N806",  # variable name doesn't conform to snake_case
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+pretty = true
+exclude = [
+    "^output/.*",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.6.0",
+    "mypy>=1.19.0",
+    "pytest>=9.0.1",
+    "ruff>=0.4.0",
+]

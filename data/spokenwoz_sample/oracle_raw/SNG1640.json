@@ -1,0 +1,156 @@
+[
+  {
+    "timestamp_ms": 10000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at",
+    "prediction": "I'm glad to hear that I'm doing well thank you for asking I'm also doing fine and hope you're enjoying your day",
+    "total_word_count": 9,
+    "trigger_word": "at",
+    "recent_words": "are you i'm good at",
+    "current_spoken_ratio": 0.75,
+    "channel": 1,
+    "hint": "um good thank you"
+  },
+  {
+    "timestamp_ms": 15000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um",
+    "prediction": "Of course, let me know what you need help with and I’ll do my best to assist you.",
+    "total_word_count": 19,
+    "trigger_word": "um",
+    "recent_words": "i need your assistance um",
+    "current_spoken_ratio": 0.2631578947368421,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 20000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me",
+    "prediction": "Oh sure, please go ahead and tell me what kind of places you're interested in I can suggest some options for you",
+    "total_word_count": 33,
+    "trigger_word": "me",
+    "recent_words": "town can you help me",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "oh sure please go ahead and listening"
+  },
+  {
+    "timestamp_ms": 25000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm",
+    "prediction": "Sure, I can help you find a good place. Are you looking for a restaurant, a park, or something else in particular?",
+    "total_word_count": 44,
+    "trigger_word": "i'm",
+    "recent_words": "listening so the traction i'm",
+    "current_spoken_ratio": 0.3076923076923077,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 30000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me",
+    "prediction": "I’m looking for something like a college or university in town, maybe a place where I can study or get some information about education.",
+    "total_word_count": 56,
+    "trigger_word": "me",
+    "recent_words": "of college okay let me",
+    "current_spoken_ratio": 0.15789473684210525,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 35000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have",
+    "prediction": "Okay okay okay that's perfect, I would like to know the entrance fee and the visiting hours as well",
+    "total_word_count": 65,
+    "trigger_word": "have",
+    "recent_words": "of college yes i have",
+    "current_spoken_ratio": 0.631578947368421,
+    "channel": 0,
+    "hint": "okay okay okay that's perfect can i please get the entrance fee"
+  },
+  {
+    "timestamp_ms": 40000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay",
+    "prediction": "Sure, I can check that for you. Entrance C is available and it will cost around one pound. Let me guide you there.",
+    "total_word_count": 74,
+    "trigger_word": "okay",
+    "recent_words": "called trinity college okay okay",
+    "current_spoken_ratio": 0.6666666666666666,
+    "channel": 1,
+    "hint": "entrance c can let me have a look it will cost you 1 pounds"
+  },
+  {
+    "timestamp_ms": 45000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the",
+    "prediction": "Sure, the entrance fee is just one pound, and I can guide you to the right spot inside.",
+    "total_word_count": 82,
+    "trigger_word": "the",
+    "recent_words": "can i please get the",
+    "current_spoken_ratio": 0.8333333333333334,
+    "channel": 1,
+    "hint": "entrance c can let me have a look it will cost you 1 pounds"
+  },
+  {
+    "timestamp_ms": 50000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it",
+    "prediction": "Alright, that sounds reasonable. Please let me know once you find out the exact fee. I appreciate your help.",
+    "total_word_count": 93,
+    "trigger_word": "it",
+    "recent_words": "me have a look it",
+    "current_spoken_ratio": 0.6428571428571429,
+    "channel": 0,
+    "hint": "okay one part that's it that's reasonable"
+  },
+  {
+    "timestamp_ms": 55000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it will cost you 1 pounds\nA: okay one part that's it that's",
+    "prediction": "Yeah, very reasonable. That sounds like a good option then, pretty affordable for a college visit.",
+    "total_word_count": 104,
+    "trigger_word": "that's",
+    "recent_words": "one part that's it that's",
+    "current_spoken_ratio": 1.0,
+    "channel": 1,
+    "hint": "ya very reasonable"
+  },
+  {
+    "timestamp_ms": 60000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it will cost you 1 pounds\nA: okay one part that's it that's reasonable\nB: ya very reasonable\nA: okay one more thing can i also",
+    "prediction": "sure i just would be right on trinity street and then find the entrance to the college easily",
+    "total_word_count": 115,
+    "trigger_word": "also",
+    "recent_words": "more thing can i also",
+    "current_spoken_ratio": 0.5833333333333334,
+    "channel": 1,
+    "hint": "okay sure i just would be right on t rinity street"
+  },
+  {
+    "timestamp_ms": 65000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it will cost you 1 pounds\nA: okay one part that's it that's reasonable\nB: ya very reasonable\nA: okay one more thing can i also get the address for this\nB: okay sure i just would",
+    "prediction": "Sure, I would appreciate that. Please provide the full address whenever you get a chance.",
+    "total_word_count": 125,
+    "trigger_word": "would",
+    "recent_words": "okay sure i just would",
+    "current_spoken_ratio": 0.45454545454545453,
+    "channel": 0,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 70000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it will cost you 1 pounds\nA: okay one part that's it that's reasonable\nB: ya very reasonable\nA: okay one more thing can i also get the address for this\nB: okay sure i just would be right on t rinity street\nA: okay",
+    "prediction": "Great, so the entrance fee is one pound and the address is Trinity Street, got it. Do you need directions to get there too?",
+    "total_word_count": 132,
+    "trigger_word": "okay",
+    "recent_words": "on t rinity street okay",
+    "current_spoken_ratio": 0.25,
+    "channel": 1,
+    "hint": ""
+  },
+  {
+    "timestamp_ms": 75000,
+    "conversation_context": "A: hi hello\nB: hi how are you\nA: i'm good at yourself\nB: um good thank you\nA: i need your assistance um i'm looking for a place to go to in town can you help me\nB: oh sure please go ahead and listening\nA: so the traction i'm looking for should be like a type of college\nB: okay let me have a look type of college yes i have picked one up it's called trinity college\nA: okay okay okay that's perfect can i please get the entrance fee\nB: entrance c can let me have a look it will cost you 1 pounds\nA: okay one part that's it that's reasonable\nB: ya very reasonable\nA: okay one more thing can i also get the address for this\nB: okay sure i just would be right on t rinity street\nA: okay that's perfect okay\nB: great great is there anything else i can",
+    "prediction": "No, that's all for now, I really appreciate your help. Thanks a lot for the information.",
+    "total_word_count": 143,
+    "trigger_word": "can",
+    "recent_words": "there anything else i can",
+    "current_spoken_ratio": 0.7272727272727273,
+    "channel": 0,
+    "hint": "now that will be all for me"
+  }
+]

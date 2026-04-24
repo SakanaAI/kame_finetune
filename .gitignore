@@ -1,0 +1,37 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.whl
+*.egg-info
+
+# Virtual environments
+.venv
+.python-version
+
+# uv
+
+.cache
+
+data/*
+!data/spokenwoz_sample
+data/spokenwoz_sample/*
+!data/spokenwoz_sample/text
+!data/spokenwoz_sample/audio
+!data/spokenwoz_sample/oracle_raw
+!data/spokenwoz_sample/README.md
+
+processed_data
+
+init_models
+output
+
+wandb
+
+slurm-*.out
+slurm-*.err
+
+/outputs/
+/logs/

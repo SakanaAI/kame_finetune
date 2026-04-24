@@ -1,0 +1,45 @@
+{
+    "fp16": {
+        "enabled": true,
+        "initial_scale_power": 10
+    },
+    "optimizer": {
+        "type": "AdamW",
+        "params": {
+            "lr": "auto",
+            "weight_decay": "auto",
+            "betas": [0.9, 0.95],
+            "eps": 1e-5
+        }
+    },
+    "scheduler": {
+        "type": "WarmupLR",
+        "params": {
+            "warmup_min_lr": "auto",
+            "warmup_max_lr": "auto",
+            "warmup_num_steps": "auto",
+            "warmup_type": "linear",
+            "last_batch_iteration": -1
+        }
+    },
+    "zero_optimization": {
+        "stage": 3,
+        "overlap_comm": true,
+        "contiguous_gradients": true,
+        "reduce_bucket_size": 2e7,
+        "stage3_prefetch_bucket_size": 2e7,
+        "stage3_param_persistence_threshold": 5e4,
+        "sub_group_size": 1e9,
+        "stage3_max_live_parameters": 1e9,
+        "stage3_max_reuse_distance": 1e9,
+        "stage3_gather_16bit_weights_on_model_save": "auto"
+    },
+    "gradient_accumulation_steps": "auto",
+    "gradient_clipping": "auto",
+    "train_batch_size": "auto",
+    "train_micro_batch_size_per_gpu": "auto",
+    "wall_clock_breakdown": false,
+    "activation_checkpointing": {
+        "partition_activations": true
+    }
+}
