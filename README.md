@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://github.com/SakanaAI/kame">KAME</a> ·
   <a href="https://arxiv.org/abs/2510.02327">Paper</a> ·
-  Blog post: coming soon
+  <a href="https://pub.sakana.ai/kame/">Blog post</a>
 </p>
 
 Kame is an oracle-enabled extension of Moshi for full-duplex spoken dialogue. This repository provides the preprocessing, finetuning, checkpoint conversion, and inference workflow for Kame.
