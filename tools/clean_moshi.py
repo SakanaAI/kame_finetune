@@ -18,7 +18,7 @@ def _validate_tied_oracle_embedding(model, *, context: str) -> None:
     if text_state.keys() != oracle_state.keys():
         raise RuntimeError(
             f"Tied oracle embedding state mismatch {context}: "
-            f"{sorted(text_state)} != {sorted(oracle_state)}"
+            f"{sorted(text_state.keys())} != {sorted(oracle_state.keys())}"
         )
 
     non_finite = []
