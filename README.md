@@ -222,8 +222,16 @@ uv run -m tools.zero_to_fp32 \
 uv run -m tools.clean_moshi \
   --moshi_ft_dir output/moshiko-finetuned/step_10000_fp32 \
   --save_dir output/moshiko-finetuned/step_10000_fp32_cleaned \
-  --model_dtype float32
+  --model_dtype float32 \
+  --oracle_embedding_mode separate
 ```
+
+Pass the same oracle embedding mode used for training. The training default is
+`separate`. For a model trained with `--oracle_embedding_mode tie`, pass `tie`
+here as well so the post-ZeRO export copies the learned `text_emb` state into
+`oracle_emb` and verifies exact equality. This option is required because the
+training mode cannot be inferred reliably from a consolidated fp32 checkpoint;
+the export refuses to proceed when it is not specified.
 
 ## Oracle-Enabled Inference
 
