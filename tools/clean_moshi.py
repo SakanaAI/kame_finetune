@@ -1,7 +1,9 @@
 import argparse
 import json
 import os
+import warnings
 from copy import deepcopy
+from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
@@ -10,6 +12,92 @@ from models import (
     MoshiForFinetuning,
     remove_moshi_modules_for_user_stream,
 )
+
+_VALID_ORACLE_EMBEDDING_MODES = ("separate", "tie")
+
+
+def _validate_oracle_embedding_mode(mode: object, *, source: str) -> str:
+    if not isinstance(mode, str) or mode not in _VALID_ORACLE_EMBEDDING_MODES:
+        raise ValueError(
+            f"{source} has invalid oracle_embedding_mode {mode!r}; expected one of "
+            f"{_VALID_ORACLE_EMBEDDING_MODES}"
+        )
+    return mode
+
+
+def _load_training_config_mode(config_path: Path) -> str | None:
+    try:
+        with config_path.open(encoding="utf-8") as f:
+            config = json.load(f)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Training config is not valid JSON: {config_path}") from exc
+
+    if not isinstance(config, dict):
+        raise ValueError(f"Training config must contain a JSON object: {config_path}")
+    if "oracle_embedding_mode" not in config:
+        return None
+    return _validate_oracle_embedding_mode(
+        config["oracle_embedding_mode"],
+        source=f"Training config at {config_path}",
+    )
+
+
+def _resolve_oracle_embedding_mode(
+    *,
+    moshi_ft_dir: str,
+    training_config_path: str | None,
+    requested_mode: str | None,
+) -> str:
+    if training_config_path is not None:
+        config_path = Path(training_config_path)
+        if not config_path.exists():
+            raise FileNotFoundError(f"Training config does not exist: {config_path}")
+    else:
+        config_path = Path(moshi_ft_dir).parent / "config.json"
+
+    config_exists = config_path.exists()
+    if config_exists and not config_path.is_file():
+        raise ValueError(f"Training config path must be a file: {config_path}")
+
+    metadata_mode = _load_training_config_mode(config_path) if config_exists else None
+    cli_mode = (
+        _validate_oracle_embedding_mode(requested_mode, source="CLI argument")
+        if requested_mode is not None
+        else None
+    )
+
+    if metadata_mode is not None:
+        if cli_mode is not None and cli_mode != metadata_mode:
+            raise ValueError(
+                "oracle_embedding_mode mismatch: training config at "
+                f"{config_path} records {metadata_mode!r}, but the CLI requested "
+                f"{cli_mode!r}"
+            )
+        print(f"Resolved oracle embedding mode from training config {config_path}: {metadata_mode}")
+        return metadata_mode
+
+    if cli_mode is not None:
+        metadata_status = (
+            f"Training config at {config_path} does not contain oracle_embedding_mode"
+            if config_exists
+            else f"Training config was not found at {config_path}"
+        )
+        warnings.warn(
+            f"{metadata_status}; using --oracle_embedding_mode={cli_mode} as a legacy "
+            "fallback. The training mode cannot be independently verified.",
+            stacklevel=2,
+        )
+        return cli_mode
+
+    metadata_status = (
+        f"training config at {config_path} does not contain oracle_embedding_mode"
+        if config_exists
+        else f"training config was not found at {config_path}"
+    )
+    raise ValueError(
+        "Could not determine oracle_embedding_mode because "
+        f"{metadata_status}. Pass --oracle_embedding_mode for a legacy checkpoint."
+    )
 
 
 def _validate_tied_oracle_embedding(model, *, context: str) -> None:
@@ -63,11 +151,11 @@ def materialize_oracle_embedding_for_inference(
 
 
 def main(args):
-    oracle_embedding_mode = getattr(args, "oracle_embedding_mode", None)
-    if oracle_embedding_mode is None:
-        raise ValueError(
-            "oracle_embedding_mode is required and must match the training configuration"
-        )
+    oracle_embedding_mode = _resolve_oracle_embedding_mode(
+        moshi_ft_dir=args.moshi_ft_dir,
+        training_config_path=getattr(args, "training_config_path", None),
+        requested_mode=getattr(args, "oracle_embedding_mode", None),
+    )
 
     moshi_lm_for_ft = MoshiForFinetuning.from_pretrained(
         args.moshi_ft_dir,
@@ -142,13 +230,21 @@ if __name__ == "__main__":
         help="Whether to remove the depth transformer's modules for user stream",
     )
     parser.add_argument(
-        "--oracle_embedding_mode",
-        choices=["separate", "tie"],
-        required=True,
+        "--training_config_path",
+        type=str,
+        default=None,
         help=(
-            "Oracle embedding mode used during training. Pass 'tie' to copy the learned "
-            "text_emb state into oracle_emb after ZeRO-to-fp32 conversion and verify exact "
-            "equality. Pass 'separate' to preserve the separately trained oracle_emb."
+            "Path to the training config.json. By default, config.json is read from "
+            "the parent directory of --moshi_ft_dir."
+        ),
+    )
+    parser.add_argument(
+        "--oracle_embedding_mode",
+        choices=_VALID_ORACLE_EMBEDDING_MODES,
+        default=None,
+        help=(
+            "Optional assertion for the mode recorded in the training config, or a "
+            "required fallback for legacy checkpoints without this metadata."
         ),
     )
     args = parser.parse_args()

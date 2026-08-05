@@ -222,16 +222,24 @@ uv run -m tools.zero_to_fp32 \
 uv run -m tools.clean_moshi \
   --moshi_ft_dir output/moshiko-finetuned/step_10000_fp32 \
   --save_dir output/moshiko-finetuned/step_10000_fp32_cleaned \
-  --model_dtype float32 \
-  --oracle_embedding_mode separate
+  --model_dtype float32
 ```
 
-Pass the same oracle embedding mode used for training. The training default is
-`separate`. For a model trained with `--oracle_embedding_mode tie`, pass `tie`
-here as well so the post-ZeRO export copies the learned `text_emb` state into
-`oracle_emb` and verifies exact equality. This option is required because the
-training mode cannot be inferred reliably from a consolidated fp32 checkpoint;
-the export refuses to proceed when it is not specified.
+By default, `clean_moshi` reads `oracle_embedding_mode` from the training run's
+`config.json`, located in the parent directory of `--moshi_ft_dir`. This matches
+the standard layout above, where the config and checkpoint directories share a
+training root. The recorded metadata is the source of truth.
+
+For a moved or nonstandard checkpoint layout, pass the config explicitly with
+`--training_config_path /path/to/config.json`. You may also pass
+`--oracle_embedding_mode separate` or `tie` as an explicit cross-check; export
+fails if it disagrees with the training metadata. For a legacy checkpoint whose
+config is unavailable or does not record this setting, the explicit mode is
+required as a fallback.
+
+For `tie`, the post-ZeRO export copies the learned `text_emb` state into
+`oracle_emb` and verifies exact equality. For `separate`, it preserves the
+independently trained `oracle_emb`.
 
 ## Oracle-Enabled Inference
 
