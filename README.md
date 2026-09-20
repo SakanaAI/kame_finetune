@@ -97,6 +97,9 @@ Oracle records may additionally carry a boolean `use_hint`: `true` selects
 on every event in a dialogue. Tokenization and Parquet construction preserve
 this selection through training. Older data without this field retains its
 existing ratio-based behavior.
+Events marked `use_hint: true` are protected from training-time event skipping,
+including when generation is restricted to one target channel. Other events
+follow the existing skip settings; timing jitter and shifts still apply.
 
 ## Standard Preprocessing
 

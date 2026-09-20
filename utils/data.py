@@ -707,7 +707,11 @@ class DataCollator:
             if frame_pos < 0 or frame_pos >= t:
                 continue
 
-            if int(skip_forbid[i]) == 0 and skip_prob > 0.0 and float(rng.random()) < skip_prob:
+            # Explicit hints stay protected even when filtering removes channel transitions.
+            skip_protected = bool(skip_forbid[i]) or (
+                use_hint_mask is not None and bool(use_hint_mask[i])
+            )
+            if not skip_protected and skip_prob > 0.0 and float(rng.random()) < skip_prob:
                 continue
 
             # jitter in frames (approx, since we store integer frame positions)

@@ -58,3 +58,31 @@ def test_explicit_hint_mask_overrides_ratio_and_survives_hint_only_mode(hint_onl
     assert collator._events_to_oracle_1d(example, t=6).tolist() == (
         [99, 11, 0, 99, 12, 0] if hint_only else [99, 11, 0, 99, 22, 0]
     )
+
+
+@pytest.mark.parametrize("hint_only", [False, True])
+def test_skipping_protects_explicit_hints_and_preserves_legacy_behavior(hint_only):
+    collator = DataCollator(
+        zero_token_id=0,
+        oracle_start_id=99,
+        oracle_hint_only=hint_only,
+        oracle_skip_prob_min=1.0,
+        oracle_skip_prob_max=1.0,
+    )
+    example = {
+        "oracle_event_frame_pos": np.array([0, 3, 6]),
+        "oracle_event_ratio": np.array([0.75, 1.0, 1.0]),
+        "oracle_event_skip_forbid": np.array([0, 0, 1]),
+        "oracle_event_use_hint": np.array([1, 0, 0]),
+        "oracle_pred_values": np.array([21, 22, 23]),
+        "oracle_pred_offsets": np.array([0, 1, 2, 3]),
+        "oracle_hint_values": np.array([11, 12, 13]),
+        "oracle_hint_offsets": np.array([0, 1, 2, 3]),
+    }
+    assert collator._events_to_oracle_1d(example, t=9).tolist() == (
+        [99, 11, 0, 0, 0, 0, 0, 0, 0] if hint_only else [99, 11, 0, 0, 0, 0, 99, 23, 0]
+    )
+    assert example["oracle_event_skip_forbid"].tolist() == [0, 0, 1]
+
+    del example["oracle_event_use_hint"]
+    assert collator._events_to_oracle_1d(example, t=9).tolist() == [0, 0, 0, 0, 0, 0, 99, 13, 0]

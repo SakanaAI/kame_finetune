@@ -118,6 +118,47 @@ def test_identical_responses_in_separate_turns_keep_separate_final_hints(sample)
     assert predictions[3].hint == predictions[-1].hint
 
 
+@pytest.mark.parametrize("target_channel", [None, 1])
+def test_multiturn_final_hints_survive_skipping_with_channel_filter(sample, target_channel):
+    dialogues, tokenizer, _, pool = sample
+    original = dialogues["japan"]
+    words = original + [
+        replace(word, start_time=word.start_time + 4, end_time=word.end_time + 4)
+        for word in original
+    ]
+    predictions = generate_random_predictions(
+        words,
+        dialogue_id="japan",
+        pool=pool,
+        tokenizer=tokenizer,
+        target_channel=target_channel,
+    )
+    records = [generate_oracle_from_text.prediction_to_record(p) for p in predictions]
+    events = tokenize_oracle.build_oracle_events_for_channel(records, 1, 100, tokenizer, 12.5)
+    hint_indices = events["event_use_hint"].astype(bool)
+    assert events["event_frame_pos"][hint_indices].tolist() == [25, 75]
+    # With B-only generation, the inherited channel-run heuristic protects only the last hint.
+    assert events["event_skip_forbid"][hint_indices].tolist() == (
+        [1, 1] if target_channel is None else [0, 1]
+    )
+
+    collator = DataCollator(
+        zero_token_id=0,
+        oracle_start_id=999,
+        oracle_skip_prob_min=1.0,
+        oracle_skip_prob_max=1.0,
+    )
+    actual = collator._events_to_oracle_1d(
+        {f"oracle_{key}": value for key, value in events.items()}, t=100
+    )
+    expected = np.zeros(100, dtype=np.int64)
+    hint_tokens = tokenizer.encode("Tokyo is the capital of Japan")
+    for frame in (25, 75):
+        expected[frame] = 999
+        expected[frame + 1 : frame + 1 + len(hint_tokens)] = hint_tokens
+    assert actual.tolist() == expected.tolist()
+
+
 def _random_args(model_path, output_dir, **overrides):
     return SimpleNamespace(
         **{
