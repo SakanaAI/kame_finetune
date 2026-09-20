@@ -85,10 +85,12 @@ class OracleEvents:
     use_hint: np.ndarray | None = None  # optional (E,) int8; absent in legacy data
 
     def __post_init__(self):
-        if self.use_hint is not None and (
-            self.use_hint.shape != self.frame_pos.shape or not np.isin(self.use_hint, [0, 1]).all()
-        ):
+        if self.use_hint is None:
+            return
+        if self.use_hint.shape != self.frame_pos.shape or not np.isin(self.use_hint, [0, 1]).all():
             raise ValueError("oracle_event_use_hint must contain one 0/1 flag per event")
+        # Arrow requires the same element type for empty and nonempty masks.
+        object.__setattr__(self, "use_hint", self.use_hint.astype(np.int8, copy=False))
 
 
 def _subset_packed_ragged(

@@ -1,7 +1,22 @@
 import numpy as np
 import pytest
 
-from utils.data import DataCollator
+from utils.data import DataCollator, OracleEvents
+
+
+@pytest.mark.parametrize("invalid_flag", [0.5, 256])
+def test_hint_mask_rejects_values_that_would_be_lost_by_integer_cast(invalid_flag):
+    with pytest.raises(ValueError, match="one 0/1 flag per event"):
+        OracleEvents(
+            frame_pos=np.array([0]),
+            ratio=np.array([1.0]),
+            skip_forbid=np.array([1]),
+            pred_values=np.array([21]),
+            pred_offsets=np.array([0, 1]),
+            hint_values=np.array([11]),
+            hint_offsets=np.array([0, 1]),
+            use_hint=np.array([invalid_flag]),
+        )
 
 
 def test_events_to_oracle_1d_samples_hint_only_once_per_example(monkeypatch):

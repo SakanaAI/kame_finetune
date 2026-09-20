@@ -8,6 +8,7 @@ import numpy as np
 import pyarrow.parquet as pq
 import pytest
 import sentencepiece as spm
+from datasets import load_dataset
 
 from tools import generate_oracle_from_text, prepare_dataset, tokenize_oracle
 from tools.oracle_generation import OracleGenerator, words_from_word_transcript
@@ -271,6 +272,37 @@ def test_random_json_survives_tokenization_parquet_delay_chunking_and_collation(
         [4, 11],
         [],  # Existing splitting divides 51 frames into three equal chunks.
     ] * 6
+
+    # Exercise the Arrow serialization used by training: A has empty masks,
+    # while B has oracle events. Direct preprocessing/collation misses this boundary.
+    dataset = load_dataset(
+        "parquet",
+        data_files=str(next(tmp_path.glob("train-*.parquet"))),
+        split="train",
+        cache_dir=str(tmp_path / "dataset_cache"),
+    )
+    skipping_collator = DataCollator(
+        zero_token_id=0,
+        oracle_start_id=999,
+        oracle_skip_prob_min=1.0,
+        oracle_skip_prob_max=1.0,
+    )
+    for max_length in (None, 20):
+        mapped = dataset.map(
+            preprocess_function,
+            remove_columns=dataset.column_names,
+            batched=True,
+            batch_size=2,
+            fn_kwargs=kwargs | {"speakers": ["A", "B"], "max_length": max_length},
+        )
+        expected_b_masks = [[0, 0, 0, 1]] if max_length is None else [[0, 0], [0, 1], []]
+        # Each input batch has two A views followed by two B views.
+        assert (
+            mapped["oracle_event_use_hint"]
+            == ([[]] * (2 * len(expected_b_masks)) + expected_b_masks * 2) * 3
+        )
+        batch = skipping_collator(list(mapped))
+        assert int((batch.oracle_tokens == 999).sum()) == 6
 
 
 @pytest.mark.parametrize("masks", [[False, None], [False, "true"], [False, True]])
