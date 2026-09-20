@@ -97,6 +97,10 @@ Oracle records may additionally carry a boolean `use_hint`: `true` selects
 on every event in a dialogue. Tokenization and Parquet construction preserve
 this selection through training. Older data without this field retains its
 existing ratio-based behavior.
+In Parquet, a null selection means unspecified (legacy), while an empty
+integer list means explicit selection with no events in that channel or chunk.
+Both survive preprocessing with the same nullable integer-list type. An oracle
+JSON containing only `[]` has no format information and remains unspecified.
 Events marked `use_hint: true` are protected from training-time event skipping,
 including when generation is restricted to one target channel. Other events
 follow the existing skip settings; timing jitter and shifts still apply.
@@ -120,7 +124,7 @@ By default this command assumes the canonical mapping `A_channel=0` and `B_chann
 #### Random oracle generation without an LLM
 
 Use `--strategy random` to sample intermediate oracle responses from training
-transcripts and retain the last eligible ground-truth hint for each response.
+transcripts and select a ground-truth hint at each response's final event.
 This runs on CPU without an API key or an embedding model; the default
 `--strategy llm` keeps the existing LLM workflow.
 
@@ -147,10 +151,17 @@ to 0.5–2 times the target's token length, and samples without replacement
 within each response. Adjust these bounds with `--min_length_ratio` and
 `--max_length_ratio` if needed. Too few eligible candidates raises an error.
 
-The existing event times and target responses are reused. The last event
-with a nonempty hint after more than half the current turn's words is marked
-`use_hint: true`; other events receive random responses and `use_hint: false`.
-No new endpoint event is inserted. The seed and stable dialogue/response
+The existing event times and hint eligibility are reused. Each turn following
+a speaker change is a target response, filtered by `--target_channel` and the
+speaker-to-channel mapping; the opening turn is excluded. Every target must
+have at least one scheduled event, and its final event must have a nonempty
+hint after more than half the preceding turn's words. That event is marked
+`use_hint: true`; preceding events receive random responses and `use_hint: false`.
+A single hint-only event is valid. Inputs that cannot meet this contract fail
+with the dialogue, response start index, speaker/channel, and a reason:
+`no_scheduled_events`, `no_eligible_hint`, or `events_after_last_eligible_hint`.
+No new endpoint event is inserted and no target is silently dropped.
+The seed and stable dialogue/response
 identities make results independent of dialogue processing order. Use an
 empty output directory for each run; `--resume` is only supported for LLM
 generation. A `manifest.json` records settings and input, tokenizer, and
@@ -159,6 +170,8 @@ output hashes after successful completion.
 This example assumes clearly separated, non-overlapping dialogue turns;
 real recordings may require preprocessing for short backchannels, turn
 boundaries, and overlapping speech.
+The final-hint guarantee applies to the generated events; the existing collator
+can leave trailing tokens from an earlier, longer update after a shorter hint.
 
 For audio-backed data, continue with steps 2–5 below using the generated
 `oracle_raw` directory. You can pass the same `--text_tokenizer_path` to

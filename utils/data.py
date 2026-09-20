@@ -360,7 +360,6 @@ def preprocess_function(
                 f"Missing keys (sample): {missing[:8]}"
             )
 
-        # Prefer events if both exist
         list_of_oracle_events = []
         hint_keys = [f"{sp}{oracle_column_suffix}_event_use_hint" for sp in speakers]
         has_hint = [key in batched_examples for key in hint_keys]
@@ -384,6 +383,11 @@ def preprocess_function(
                 masks,
                 strict=True,
             ):
+                # Nullable Parquet rows retain legacy selection even when the
+                # batch also contains explicit masks. Pandas can expose null as NaN.
+                missing_mask = mask is None or (
+                    isinstance(mask, (float, np.floating)) and np.isnan(mask)
+                )
                 ev = OracleEvents(
                     frame_pos=np.asarray(pos, dtype=np.int32),
                     ratio=np.asarray(ratio, dtype=np.float32),
@@ -392,7 +396,7 @@ def preprocess_function(
                     pred_offsets=np.asarray(po, dtype=np.int32),
                     hint_values=np.asarray(hv, dtype=np.int32),
                     hint_offsets=np.asarray(ho, dtype=np.int32),
-                    use_hint=np.asarray(mask) if all(has_hint) else None,
+                    use_hint=None if missing_mask else np.asarray(mask),
                 )
                 list_of_oracle_events.append(ev)
 
@@ -473,8 +477,7 @@ def preprocess_function(
         features["oracle_pred_offsets"] = [e.pred_offsets for e in list_of_oracle_events]
         features["oracle_hint_values"] = [e.hint_values for e in list_of_oracle_events]
         features["oracle_hint_offsets"] = [e.hint_offsets for e in list_of_oracle_events]
-        if all(has_hint):
-            features["oracle_event_use_hint"] = [e.use_hint for e in list_of_oracle_events]
+        features["oracle_event_use_hint"] = [e.use_hint for e in list_of_oracle_events]
 
     return features
 

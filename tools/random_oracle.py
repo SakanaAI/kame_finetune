@@ -127,7 +127,7 @@ def generate_random_predictions(
     min_length_ratio: float = 0.5,
     max_length_ratio: float = 2.0,
 ) -> list[OraclePrediction]:
-    """Keep the last nonempty eligible hint per response; randomize other events.
+    """Require a final eligible hint per response; randomize preceding events.
 
     Event times, response extraction and hint eligibility (> half the input words)
     follow OracleGenerator. No event is added to force an endpoint hint.
@@ -144,7 +144,49 @@ def generate_random_predictions(
         target_channel=target_channel,
         speaker_to_channel=speaker_to_channel,
     )
+    # Enumerate independently of the schedule so even responses with no events
+    # are checked. The opening turn is not a response to a preceding turn.
+    targets = [
+        (index, word.speaker)
+        for index, word in enumerate(words)
+        if index > 0
+        and word.speaker != words[index - 1].speaker
+        and (target_channel is None or generator.speaker_to_channel[word.speaker] == target_channel)
+    ]
     requests = list(generator.generate_requests(words))
+    groups: dict[tuple[int, str], list[int]] = defaultdict(list)
+    for index, request in enumerate(requests):
+        groups[request.target_index, request.next_speaker].append(index)
+
+    # Validate every target before sampling, without changing the shared schedule
+    # or ratio calculation. A single hint-only event is sufficient.
+    for target_index, speaker in targets:
+        indices = groups[target_index, speaker]
+        eligible = [
+            i
+            for i in indices
+            if requests[i].current_spoken_ratio > 0.5 and requests[i].next_utterance_hint.strip()
+        ]
+        reason = None
+        if not indices:
+            reason = "no_scheduled_events"
+        elif not eligible:
+            reason = "no_eligible_hint"
+        elif eligible[-1] != indices[-1]:
+            reason = "events_after_last_eligible_hint"
+        if reason is not None:
+            details = ""
+            if indices:
+                last = requests[indices[-1]]
+                details = (
+                    f" last_event_ms={last.timestamp_ms} last_ratio={last.current_spoken_ratio}"
+                )
+            raise ValueError(
+                f"Invalid random oracle: dialogue={dialogue_id!r} "
+                f"target_index={target_index} speaker={speaker} "
+                f"channel={generator.speaker_to_channel[speaker]} reason={reason}{details}"
+            )
+
     # Exclude text in any turn of this dialogue, including its opening turn.
     excluded_tokens = {
         tuple(tokenizer.encode(" ".join(w.text for w in turn), out_type=int))
@@ -153,15 +195,11 @@ def generate_random_predictions(
     excluded_tokens.update(
         tuple(tokenizer.encode(request.next_utterance_hint, out_type=int)) for request in requests
     )
-    groups: dict[tuple[int, str], list[int]] = defaultdict(list)
-    for index, request in enumerate(requests):
-        groups[request.target_index, request.next_speaker].append(index)
-
     predictions: dict[int, OraclePrediction] = {}
-    for (target_index, speaker), indices in groups.items():
-        eligible = [i for i in indices if requests[i].current_spoken_ratio > 0.5]
-        hint_index = eligible[-1] if eligible else None
-        random_indices = [i for i in indices if i != hint_index]
+    for target_index, speaker in targets:
+        indices = groups[target_index, speaker]
+        hint_index = indices[-1]
+        random_indices = indices[:-1]
         target = requests[indices[0]].next_utterance_hint
         key = f"{seed}\0{dialogue_id}\0{target_index}\0{speaker}".encode()
         rng = random.Random(int.from_bytes(hashlib.sha256(key).digest(), "big"))
@@ -177,8 +215,5 @@ def generate_random_predictions(
         )
         for index, text in zip(random_indices, texts, strict=True):
             predictions[index] = prediction_from_request(requests[index], text, use_hint=False)
-        if hint_index is not None:
-            predictions[hint_index] = prediction_from_request(
-                requests[hint_index], "", use_hint=True
-            )
+        predictions[hint_index] = prediction_from_request(requests[hint_index], "", use_hint=True)
     return [predictions[i] for i in range(len(requests))]

@@ -11,9 +11,10 @@ import sentencepiece as spm
 from datasets import load_dataset
 
 from tools import generate_oracle_from_text, prepare_dataset, tokenize_oracle
-from tools.oracle_generation import OracleGenerator, words_from_word_transcript
+from tools.oracle_generation import OracleGenerator, Word, words_from_word_transcript
 from tools.random_oracle import build_response_pool, generate_random_predictions
 from utils.data import DataCollator, preprocess_function
+from utils.dataset_schema import preprocessed_dataset_features
 
 SAMPLE = Path(__file__).resolve().parents[1] / "data/random_oracle_sample/text"
 
@@ -197,6 +198,7 @@ def test_cli_uses_no_api_and_records_portable_reproducible_outputs(sample, tmp_p
         assert path.read_bytes() == (second / path.name).read_bytes()
     manifest = json.loads((first / "manifest.json").read_text())
     assert len(manifest["outputs"]) == 6
+    assert manifest["hint_policy"] == "final_scheduled_event_must_use_hint"
     with pytest.raises(ValueError, match="empty output directory"):
         generate_oracle_from_text.main(_random_args(model_path, first, seed=1))
 
@@ -294,6 +296,7 @@ def test_random_json_survives_tokenization_parquet_delay_chunking_and_collation(
             batched=True,
             batch_size=2,
             fn_kwargs=kwargs | {"speakers": ["A", "B"], "max_length": max_length},
+            features=preprocessed_dataset_features(use_oracle=True),
         )
         expected_b_masks = [[0, 0, 0, 1]] if max_length is None else [[0, 0], [0, 1], []]
         # Each input batch has two A views followed by two B views.
@@ -316,3 +319,120 @@ def test_tokenizer_rejects_partial_invalid_or_empty_hint_decisions(sample, masks
             record["use_hint"] = mask
     with pytest.raises(ValueError, match="use_hint"):
         tokenize_oracle.build_oracle_events_for_channel(records, 1, 30, tokenizer, 12.5)
+
+
+def _paused_question(response_start=1.86):
+    texts = "Could you tell me the capital city of Japan please".split()
+    ends = [0.25, 0.5] + [1.5 + i * 0.05 for i in range(8)]
+    starts = [0, 0.25, 1.4] + ends[2:-1]
+    words = [Word(t, s, e, "A") for t, s, e in zip(texts, starts, ends, strict=True)]
+    return words + [
+        Word(t, response_start + i * 0.1, response_start + (i + 1) * 0.1, "B")
+        for i, t in enumerate("Tokyo is the capital of Japan".split())
+    ]
+
+
+@pytest.mark.parametrize(
+    "words, reason, target_index",
+    [
+        (
+            [Word("Hello", 0, 0.1, "A"), Word("there", 0.1, 0.2, "A"), Word("Hi", 0.2, 0.3, "B")],
+            "no_scheduled_events",
+            2,
+        ),
+        (
+            [
+                Word(t, i * 0.2, (i + 1) * 0.2, "A")
+                for i, t in enumerate("What is the capital".split())
+            ]
+            + [Word("Tokyo", 0.81, 0.91, "B")],
+            "no_eligible_hint",
+            4,
+        ),
+        (_paused_question(), "events_after_last_eligible_hint", 10),
+    ],
+)
+def test_invalid_terminal_hint_fails_before_sampling(sample, words, reason, target_index):
+    _, tokenizer, _, _ = sample
+    # An empty pool would fail sampling: the response contract must be checked first.
+    with pytest.raises(ValueError) as error:
+        generate_random_predictions(words, dialogue_id="edge", pool=(), tokenizer=tokenizer)
+    message = str(error.value)
+    assert f"reason={reason}" in message
+    assert f"dialogue='edge' target_index={target_index} speaker=B channel=1" in message
+    if reason != "no_scheduled_events":
+        assert "last_event_ms=" in message and "last_ratio=" in message
+
+
+def test_nonmonotonic_ratios_are_allowed_when_final_event_has_hint(sample):
+    _, tokenizer, _, pool = sample
+    words = _paused_question(response_start=2.06)
+    requests = list(OracleGenerator().generate_requests(words))
+    assert [r.current_spoken_ratio for r in requests] == [1.0, 1.0, 0.3, 1.0]
+    predictions = generate_random_predictions(
+        words, dialogue_id="edge", pool=pool, tokenizer=tokenizer
+    )
+    assert [p.use_hint for p in predictions] == [False, False, False, True]
+
+
+@pytest.mark.parametrize("mapping", [{"A": 0, "B": 1}, {"A": 1, "B": 0}])
+def test_targets_respect_channel_mapping_and_allow_single_hint(sample, mapping):
+    _, tokenizer, _, _ = sample
+    words = [Word("Hello", 0, 0.2, "A"), Word("there", 0.2, 0.4, "A"), Word("Tokyo", 0.6, 0.7, "B")]
+    predictions = generate_random_predictions(
+        words,
+        dialogue_id="edge",
+        pool=(),
+        tokenizer=tokenizer,
+        speaker_to_channel=mapping,
+        target_channel=mapping["B"],
+    )
+    assert len(predictions) == 1
+    assert predictions[0].use_hint is True
+    assert predictions[0].channel == mapping["B"]
+    assert (
+        generate_random_predictions(
+            words,
+            dialogue_id="edge",
+            pool=(),
+            tokenizer=tokenizer,
+            speaker_to_channel=mapping,
+            target_channel=mapping["A"],
+        )
+        == []
+    )
+    # The final B response has no scheduled events. It is irrelevant for A-only
+    # generation, but must be rejected when B is included, even after valid targets.
+    words += [
+        Word("Hello", 0.8, 1.1, "A"),
+        Word("there", 1.1, 1.2, "A"),
+        Word("Tokyo", 1.21, 1.3, "B"),
+    ]
+    a_predictions = generate_random_predictions(
+        words,
+        dialogue_id="edge",
+        pool=(),
+        tokenizer=tokenizer,
+        speaker_to_channel=mapping,
+        target_channel=mapping["A"],
+    )
+    assert len(a_predictions) == 1 and a_predictions[0].use_hint is True
+    with pytest.raises(ValueError, match="target_index=5 speaker=B.*no_scheduled_events"):
+        generate_random_predictions(
+            words,
+            dialogue_id="edge",
+            pool=(),
+            tokenizer=tokenizer,
+            speaker_to_channel=mapping,
+            target_channel=mapping["B"],
+        )
+
+
+def test_empty_json_is_unspecified_but_empty_channel_is_explicit(sample):
+    _, tokenizer, _, _ = sample
+    empty = tokenize_oracle.build_oracle_events_for_channel([], 0, 30, tokenizer, 12.5)
+    assert "event_use_hint" not in empty
+    records = [{"timestamp_ms": 500, "channel": 1, "hint": "Tokyo", "use_hint": True}]
+    empty_channel = tokenize_oracle.build_oracle_events_for_channel(records, 0, 30, tokenizer, 12.5)
+    assert empty_channel["event_use_hint"].tolist() == []
+    assert empty_channel["event_use_hint"].dtype == np.int8

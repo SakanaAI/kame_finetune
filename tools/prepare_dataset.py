@@ -2,8 +2,11 @@ import argparse
 import os
 
 import numpy as np
-import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from tqdm import tqdm
+
+from utils.dataset_schema import prepared_dataset_features
 
 
 def merge_text_audio(
@@ -76,6 +79,7 @@ def main(args):
 
     num_dialogues = len(dialogue_names)
     num_parquets = -(-num_dialogues // args.num_examples_per_parquet)
+    schema = prepared_dataset_features(use_oracle=oracle_dialogue_names is not None).arrow_schema
 
     for i in range(num_parquets):
         dials_per_parquet = dialogue_names[
@@ -175,9 +179,8 @@ def main(args):
             data.append(rec)
 
         # save the merged data
-        df = pd.DataFrame(data)
         output_path = f"{args.output_prefix}-{i + 1:03d}-of-{num_parquets:03d}.parquet"
-        df.to_parquet(output_path, index=False)
+        pq.write_table(pa.Table.from_pylist(data, schema=schema), output_path)
 
 
 if __name__ == "__main__":

@@ -261,7 +261,7 @@ def _run_random(args: argparse.Namespace) -> None:
         "speaker_to_channel": {"A": args.A_channel, "B": args.B_channel},
         "min_length_ratio": args.min_length_ratio,
         "max_length_ratio": args.max_length_ratio,
-        "hint_policy": "last_nonempty_hint_per_response",
+        "hint_policy": "final_scheduled_event_must_use_hint",
         "tokenizer_sha256": fingerprint(tokenizer_path),
         "inputs": {path.name: fingerprint(path) for path in text_paths},
         "pool_inputs": {path.name: fingerprint(path) for path in pool_paths},
