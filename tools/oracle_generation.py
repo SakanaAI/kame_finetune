@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Mapping, Sequence
+import math
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -34,6 +35,7 @@ class OraclePredictionRequest:
     current_speaker: str
     next_speaker: str
     target_channel: int
+    target_index: int = -1  # First word of the response in the source transcript.
 
 
 @dataclass(frozen=True)
@@ -47,9 +49,27 @@ class OraclePrediction:
     current_spoken_ratio: float
     channel: int
     hint: str
+    use_hint: bool | None = None  # None preserves the legacy ratio-based selection.
 
 
 PredictFn = Callable[[OraclePredictionRequest], str]
+
+
+def prediction_from_request(
+    request: OraclePredictionRequest, prediction: str, *, use_hint: bool | None = None
+) -> OraclePrediction:
+    return OraclePrediction(
+        timestamp_ms=request.timestamp_ms,
+        conversation_context=request.conversation_context,
+        prediction=prediction,
+        total_word_count=request.total_word_count,
+        trigger_word=request.trigger_word,
+        recent_words=request.recent_words,
+        current_spoken_ratio=request.current_spoken_ratio,
+        channel=request.target_channel,
+        hint=request.next_utterance_hint if request.current_spoken_ratio > 0.5 else "",
+        use_hint=use_hint,
+    )
 
 
 def words_from_word_transcript(records: Iterable[WordTranscriptRecord]) -> list[Word]:
@@ -94,13 +114,15 @@ class OracleGenerator:
 
     def __init__(
         self,
-        predict_fn: PredictFn,
+        predict_fn: PredictFn | None = None,
         *,
         time_interval: float = 0.5,
         target_channel: int | None = None,
         speaker_to_channel: Mapping[str, int] | None = None,
         recent_word_window: int = 5,
     ):
+        if not math.isfinite(time_interval) or time_interval <= 0:
+            raise ValueError("time_interval must be finite and positive")
         self.predict_fn = predict_fn
         self.time_interval = time_interval
         self.target_channel = target_channel
@@ -115,10 +137,20 @@ class OracleGenerator:
         self.recent_word_window = recent_word_window
 
     def generate_predictions(self, words: Sequence[Word]) -> list[OraclePrediction]:
+        if self.predict_fn is None:
+            raise ValueError("generate_predictions requires a predict_fn")
         predictions: list[OraclePrediction] = []
+        for request in self.generate_requests(words):
+            prediction = self.predict_fn(request).strip()
+            if prediction:
+                predictions.append(prediction_from_request(request, prediction))
+        return predictions
+
+    def generate_requests(self, words: Sequence[Word]) -> Iterator[OraclePredictionRequest]:
+        """Build the existing event schedule without calling a prediction backend."""
         words = list(words)
         if not words:
-            return predictions
+            return
         unexpected_speakers = {word.speaker for word in words} - SUPPORTED_SPEAKERS
         if unexpected_speakers:
             raise ValueError(
@@ -152,13 +184,13 @@ class OracleGenerator:
                 current_time += self.time_interval
                 continue
 
-            next_utterance_hint = self._get_next_utterance_hint(
+            target_index, next_utterance_hint = self._get_next_utterance(
                 words, words_so_far, current_speaker
             )
             if not next_utterance_hint:
                 break
 
-            request = OraclePredictionRequest(
+            yield OraclePredictionRequest(
                 timestamp_ms=int(current_time * 1000),
                 conversation_context=conversation_context,
                 next_utterance_hint=next_utterance_hint,
@@ -169,30 +201,10 @@ class OracleGenerator:
                 current_speaker=current_speaker,
                 next_speaker=next_speaker,
                 target_channel=target_channel,
+                target_index=target_index,
             )
-            prediction = self.predict_fn(request).strip()
-            if prediction:
-                predictions.append(
-                    OraclePrediction(
-                        timestamp_ms=request.timestamp_ms,
-                        conversation_context=request.conversation_context,
-                        prediction=prediction,
-                        total_word_count=request.total_word_count,
-                        trigger_word=request.trigger_word,
-                        recent_words=request.recent_words,
-                        current_spoken_ratio=request.current_spoken_ratio,
-                        channel=request.target_channel,
-                        hint=(
-                            request.next_utterance_hint
-                            if request.current_spoken_ratio > 0.5
-                            else ""
-                        ),
-                    )
-                )
 
             current_time += self.time_interval
-
-        return predictions
 
     def _build_conversation_context(self, words: Sequence[Word]) -> str:
         if not words:
@@ -281,21 +293,32 @@ class OracleGenerator:
         words_so_far: Sequence[Word],
         current_speaker: str,
     ) -> str:
+        return self._get_next_utterance(all_words, words_so_far, current_speaker)[1]
+
+    def _get_next_utterance(
+        self,
+        all_words: Sequence[Word],
+        words_so_far: Sequence[Word],
+        current_speaker: str,
+    ) -> tuple[int, str]:
         if not words_so_far:
-            return ""
+            return -1, ""
 
         last_word_time = words_so_far[-1].end_time
         next_speaker = "B" if current_speaker == "A" else "A"
         next_utterance: list[str] = []
         found_next_speaker = False
+        target_index = -1
 
-        for word in all_words:
+        for index, word in enumerate(all_words):
             if word.end_time <= last_word_time:
                 continue
             if word.speaker == next_speaker:
+                if not found_next_speaker:
+                    target_index = index
                 found_next_speaker = True
                 next_utterance.append(word.text)
             elif found_next_speaker:
                 break
 
-        return " ".join(next_utterance)
+        return target_index, " ".join(next_utterance)

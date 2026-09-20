@@ -82,6 +82,13 @@ class OracleEvents:
     pred_offsets: np.ndarray  # (E+1,) int32
     hint_values: np.ndarray  # (sum_hint,) int32
     hint_offsets: np.ndarray  # (E+1,) int32
+    use_hint: np.ndarray | None = None  # optional (E,) int8; absent in legacy data
+
+    def __post_init__(self):
+        if self.use_hint is not None and (
+            self.use_hint.shape != self.frame_pos.shape or not np.isin(self.use_hint, [0, 1]).all()
+        ):
+            raise ValueError("oracle_event_use_hint must contain one 0/1 flag per event")
 
 
 def _subset_packed_ragged(
@@ -158,6 +165,7 @@ def _subset_oracle_events(
         pred_offsets=pred_offsets,
         hint_values=hint_values,
         hint_offsets=hint_offsets,
+        use_hint=events.use_hint[keep_indices] if events.use_hint is not None else None,
     )
 
 
@@ -194,6 +202,7 @@ def align_oracle_events_to_delayed_text_timeline(
                 pred_offsets=ev.pred_offsets,
                 hint_values=ev.hint_values,
                 hint_offsets=ev.hint_offsets,
+                use_hint=ev.use_hint,
             ),
             keep_indices=keep,
             pos_shift=0,
@@ -351,9 +360,18 @@ def preprocess_function(
 
         # Prefer events if both exist
         list_of_oracle_events = []
+        hint_keys = [f"{sp}{oracle_column_suffix}_event_use_hint" for sp in speakers]
+        has_hint = [key in batched_examples for key in hint_keys]
+        if any(has_hint) and not all(has_hint):
+            raise ValueError("oracle_event_use_hint must be present for all speakers or none")
         for sp in speakers:
             base = f"{sp}{oracle_column_suffix}"
-            for pos, ratio, skip_forbid, pv, po, hv, ho in zip(
+            masks = (
+                batched_examples[f"{base}_event_use_hint"]
+                if all(has_hint)
+                else [None] * len(batched_examples[f"{base}_event_frame_pos"])
+            )
+            for pos, ratio, skip_forbid, pv, po, hv, ho, mask in zip(
                 batched_examples[f"{base}_event_frame_pos"],
                 batched_examples[f"{base}_event_ratio"],
                 batched_examples[f"{base}_event_skip_forbid"],
@@ -361,6 +379,7 @@ def preprocess_function(
                 batched_examples[f"{base}_pred_offsets"],
                 batched_examples[f"{base}_hint_values"],
                 batched_examples[f"{base}_hint_offsets"],
+                masks,
                 strict=True,
             ):
                 ev = OracleEvents(
@@ -371,6 +390,7 @@ def preprocess_function(
                     pred_offsets=np.asarray(po, dtype=np.int32),
                     hint_values=np.asarray(hv, dtype=np.int32),
                     hint_offsets=np.asarray(ho, dtype=np.int32),
+                    use_hint=np.asarray(mask) if all(has_hint) else None,
                 )
                 list_of_oracle_events.append(ev)
 
@@ -451,6 +471,8 @@ def preprocess_function(
         features["oracle_pred_offsets"] = [e.pred_offsets for e in list_of_oracle_events]
         features["oracle_hint_values"] = [e.hint_values for e in list_of_oracle_events]
         features["oracle_hint_offsets"] = [e.hint_offsets for e in list_of_oracle_events]
+        if all(has_hint):
+            features["oracle_event_use_hint"] = [e.use_hint for e in list_of_oracle_events]
 
     return features
 
@@ -655,6 +677,11 @@ class DataCollator:
         pos = np.asarray(e["oracle_event_frame_pos"], dtype=np.int64)
         ratio = np.asarray(e["oracle_event_ratio"], dtype=np.float32)
         skip_forbid = np.asarray(e["oracle_event_skip_forbid"], dtype=np.int8)
+        use_hint_mask = e.get("oracle_event_use_hint")
+        if use_hint_mask is not None:
+            use_hint_mask = np.asarray(use_hint_mask)
+            if use_hint_mask.shape != pos.shape or not np.isin(use_hint_mask, [0, 1]).all():
+                raise ValueError("oracle_event_use_hint must contain one 0/1 flag per event")
 
         pred_values = np.asarray(e["oracle_pred_values"], dtype=np.int32)
         pred_offsets = np.asarray(e["oracle_pred_offsets"], dtype=np.int32)
@@ -694,13 +721,19 @@ class DataCollator:
             hint_tok = self._get_event_tokens(hint_values, hint_offsets, i)
             if effective_hint_only:
                 # Use hint only, with no fallback to prediction
+                if use_hint_mask is not None and not use_hint_mask[i]:
+                    continue
                 if hint_tok.size == 0:
                     continue
                 seq = hint_tok
             else:
-                # Use hint when it is complete (ratio >= 1.0); otherwise fall back to prediction
+                # Explicit decisions override the legacy ratio-based hint selection.
                 pred_tok = self._get_event_tokens(pred_values, pred_offsets, i)
-                use_hint = (float(ratio[i]) >= 1.0) and (hint_tok.size > 0)
+                use_hint = (
+                    bool(use_hint_mask[i])
+                    if use_hint_mask is not None
+                    else (float(ratio[i]) >= 1.0) and (hint_tok.size > 0)
+                )
                 seq = hint_tok if use_hint else pred_tok
                 if seq.size == 0:
                     continue
@@ -738,6 +771,7 @@ class DataCollator:
                         "oracle_event_frame_pos": np.ndarray,  # (E,) int32
                         "oracle_event_ratio": np.ndarray,      # (E,) float32
                         "oracle_event_skip_forbid": np.ndarray,  # (E,) int8
+                        "oracle_event_use_hint": np.ndarray,  # optional (E,) int8
                         "oracle_pred_values": np.ndarray,      # (sum_pred,) int32
                         "oracle_pred_offsets": np.ndarray,     # (E+1,) int32
                         "oracle_hint_values": np.ndarray,      # (sum_hint,) int32

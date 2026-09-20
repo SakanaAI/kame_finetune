@@ -125,6 +125,18 @@ def main(args):
                         f"dialogue={dialogue_name}, keys={list(oracle_data.keys())}"
                     )
 
+                hint_keys = [f"{sp}_event_use_hint" for sp in ("A", "B")]
+                has_hint = [key in oracle_data for key in hint_keys]
+                if any(has_hint) and not all(has_hint):
+                    raise ValueError("event_use_hint must be present for both channels or neither")
+                if all(has_hint):
+                    for sp in ("A", "B"):
+                        mask = oracle_data[f"{sp}_event_use_hint"]
+                        positions = oracle_data[f"{sp}_event_frame_pos"]
+                        if mask.shape != positions.shape or not np.isin(mask, [0, 1]).all():
+                            raise ValueError(f"Invalid event_use_hint for {dialogue_name}/{sp}")
+                        rec[f"{sp}_oracle_event_use_hint"] = mask.astype(np.int8).tolist()
+
                 rec["A_oracle_event_frame_pos"] = (
                     oracle_data["A_event_frame_pos"].astype(np.int32).tolist()
                 )

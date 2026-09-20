@@ -1,0 +1,80 @@
+[
+  {
+    "speaker": "A",
+    "word": "What",
+    "start": 0.0,
+    "end": 0.25
+  },
+  {
+    "speaker": "A",
+    "word": "makes",
+    "start": 0.25,
+    "end": 0.5
+  },
+  {
+    "speaker": "A",
+    "word": "water",
+    "start": 0.5,
+    "end": 0.75
+  },
+  {
+    "speaker": "A",
+    "word": "freeze",
+    "start": 0.75,
+    "end": 1.0
+  },
+  {
+    "speaker": "A",
+    "word": "into",
+    "start": 1.0,
+    "end": 1.25
+  },
+  {
+    "speaker": "A",
+    "word": "ice",
+    "start": 1.25,
+    "end": 1.5
+  },
+  {
+    "speaker": "B",
+    "word": "Water",
+    "start": 2.0,
+    "end": 2.25
+  },
+  {
+    "speaker": "B",
+    "word": "freezes",
+    "start": 2.25,
+    "end": 2.5
+  },
+  {
+    "speaker": "B",
+    "word": "when",
+    "start": 2.5,
+    "end": 2.75
+  },
+  {
+    "speaker": "B",
+    "word": "its",
+    "start": 2.75,
+    "end": 3.0
+  },
+  {
+    "speaker": "B",
+    "word": "temperature",
+    "start": 3.0,
+    "end": 3.25
+  },
+  {
+    "speaker": "B",
+    "word": "becomes",
+    "start": 3.25,
+    "end": 3.5
+  },
+  {
+    "speaker": "B",
+    "word": "low",
+    "start": 3.5,
+    "end": 3.75
+  }
+]

@@ -92,6 +92,11 @@ If oracle predictions are already present, `oracle_raw/*.json` should follow thi
 ```
 
 The `hint` field is intentionally empty when `current_spoken_ratio <= 0.5`.
+Oracle records may additionally carry a boolean `use_hint`: `true` selects
+`hint`, and `false` selects `prediction`. Include it on every event or omit it
+on every event in a dialogue. Tokenization and Parquet construction preserve
+this selection through training. Older data without this field retains its
+existing ratio-based behavior.
 
 ## Standard Preprocessing
 
@@ -108,6 +113,56 @@ uv run --extra oracle -m tools.generate_oracle_from_text \
 ```
 
 By default this command assumes the canonical mapping `A_channel=0` and `B_channel=1`.
+
+#### Random oracle generation without an LLM
+
+Use `--strategy random` to sample intermediate oracle responses from training
+transcripts and retain the last eligible ground-truth hint for each response.
+This runs on CPU without an API key or an embedding model; the default
+`--strategy llm` keeps the existing LLM workflow.
+
+The [synthetic transcript sample](data/random_oracle_sample/README.md) contains
+six small, fictional A/B dialogues. With a local copy of the SentencePiece
+tokenizer used by your KAME checkpoint:
+
+```bash
+uv run -m tools.generate_oracle_from_text \
+  --strategy random \
+  --text_dir data/random_oracle_sample/text \
+  --pool_text_dir data/random_oracle_sample/text \
+  --text_tokenizer_path /path/to/tokenizer_spm_32k_3.model \
+  --output_dir processed_data/random_oracle_sample/oracle_raw \
+  --seed 42
+```
+
+For your own data, set `--text_dir` to the transcripts to process and
+`--pool_text_dir` to **training-only** transcripts. Keep dialogue filenames
+stable and unique across splits. Validation/test transcripts must not be
+added to the candidate pool. Responses are deduplicated by token sequence;
+sampling excludes the current dialogue and its turn texts, filters candidates
+to 0.5–2 times the target's token length, and samples without replacement
+within each response. Adjust these bounds with `--min_length_ratio` and
+`--max_length_ratio` if needed. Too few eligible candidates raises an error.
+
+The existing event times and target responses are reused. The last event
+with a nonempty hint after more than half the current turn's words is marked
+`use_hint: true`; other events receive random responses and `use_hint: false`.
+No new endpoint event is inserted. The seed and stable dialogue/response
+identities make results independent of dialogue processing order. Use an
+empty output directory for each run; `--resume` is only supported for LLM
+generation. A `manifest.json` records settings and input, tokenizer, and
+output hashes after successful completion.
+
+This example assumes clearly separated, non-overlapping dialogue turns;
+real recordings may require preprocessing for short backchannels, turn
+boundaries, and overlapping speech.
+
+For audio-backed data, continue with steps 2–5 below using the generated
+`oracle_raw` directory. You can pass the same `--text_tokenizer_path` to
+`tools.tokenize_oracle` for local-only oracle tokenization. The small sample
+contains text only; it demonstrates oracle generation and does not include
+training audio. Randomization changes training guidance; inference still uses
+the usual KAME back-end LLM.
 
 ### 2. Audio Tokenization
 
