@@ -29,6 +29,8 @@ The public preprocessing entry point is a canonical dataset layout built from st
 
 This repository also includes a small sample under `data/spokenwoz_sample/{audio,text,oracle_raw}` so you can run the preprocessing steps on a bundled example before using your own data.
 
+For an alternative way to prepare training guidance without LLM calls, see [Randomized Training Guidance](docs/random_oracle.md). Its [text-only demo](data/random_oracle_sample/README.md) runs oracle generation on CPU.
+
 ## Installation
 
 Python 3.12+ is required.
@@ -92,24 +94,16 @@ If oracle predictions are already present, `oracle_raw/*.json` should follow thi
 ```
 
 The `hint` field is intentionally empty when `current_spoken_ratio <= 0.5`.
-Oracle records may additionally carry a boolean `use_hint`: `true` selects
-`hint`, and `false` selects `prediction`. Include it on every event or omit it
-on every event in a dialogue. Tokenization and Parquet construction preserve
-this selection through training. Older data without this field retains its
-existing ratio-based behavior.
-In Parquet, a null selection means unspecified (legacy), while an empty
-integer list means explicit selection with no events in that channel or chunk.
-Both survive preprocessing with the same nullable integer-list type. An oracle
-JSON containing only `[]` has no format information and remains unspecified.
-Events marked `use_hint: true` are protected from training-time event skipping,
-including when generation is restricted to one target channel. Other events
-follow the existing skip settings; timing jitter and shifts still apply.
+
+Random-oracle files also include `use_hint` to select the guidance text. See [Oracle Selection Format](docs/random_oracle.md#oracle-selection-format) for this optional field and compatibility with existing data.
 
 ## Standard Preprocessing
 
+The commands below use `my_dataset` as the dataset name. To use the bundled audio sample, replace `my_dataset` with `spokenwoz_sample` in the data and Parquet paths.
+
 ### 1. Optional: Generate `oracle_raw` From Canonical Text Transcripts
 
-If your dataset does not already include oracle predictions, generate them directly from `text/*.json`:
+If your dataset already includes oracle predictions, as the bundled SpokenWOZ sample does, continue with step 2. Otherwise, generate them with an LLM directly from `text/*.json`:
 
 ```bash
 export OPENAI_API_KEY=...
@@ -121,64 +115,7 @@ uv run --extra oracle -m tools.generate_oracle_from_text \
 
 By default this command assumes the canonical mapping `A_channel=0` and `B_channel=1`.
 
-#### Random oracle generation without an LLM
-
-Use `--strategy random` to sample intermediate oracle responses from training
-transcripts and select a ground-truth hint at each response's final event.
-This runs on CPU without an API key or an embedding model; the default
-`--strategy llm` keeps the existing LLM workflow.
-
-The [synthetic transcript sample](data/random_oracle_sample/README.md) contains
-six small, fictional A/B dialogues. With a local copy of the SentencePiece
-tokenizer used by your KAME checkpoint:
-
-```bash
-uv run -m tools.generate_oracle_from_text \
-  --strategy random \
-  --text_dir data/random_oracle_sample/text \
-  --pool_text_dir data/random_oracle_sample/text \
-  --text_tokenizer_path /path/to/tokenizer_spm_32k_3.model \
-  --output_dir processed_data/random_oracle_sample/oracle_raw \
-  --seed 42
-```
-
-For your own data, set `--text_dir` to the transcripts to process and
-`--pool_text_dir` to **training-only** transcripts. Keep dialogue filenames
-stable and unique across splits. Validation/test transcripts must not be
-added to the candidate pool. Responses are deduplicated by token sequence;
-sampling excludes the current dialogue and its turn texts, filters candidates
-to 0.5–2 times the target's token length, and samples without replacement
-within each response. Adjust these bounds with `--min_length_ratio` and
-`--max_length_ratio` if needed. Too few eligible candidates raises an error.
-
-The existing event times and hint eligibility are reused. Each turn following
-a speaker change is a target response, filtered by `--target_channel` and the
-speaker-to-channel mapping; the opening turn is excluded. Every target must
-have at least one scheduled event, and its final event must have a nonempty
-hint after more than half the preceding turn's words. That event is marked
-`use_hint: true`; preceding events receive random responses and `use_hint: false`.
-A single hint-only event is valid. Inputs that cannot meet this contract fail
-with the dialogue, response start index, speaker/channel, and a reason:
-`no_scheduled_events`, `no_eligible_hint`, or `events_after_last_eligible_hint`.
-No new endpoint event is inserted and no target is silently dropped.
-The seed and stable dialogue/response
-identities make results independent of dialogue processing order. Use an
-empty output directory for each run; `--resume` is only supported for LLM
-generation. A `manifest.json` records settings and input, tokenizer, and
-output hashes after successful completion.
-
-This example assumes clearly separated, non-overlapping dialogue turns;
-real recordings may require preprocessing for short backchannels, turn
-boundaries, and overlapping speech.
-The final-hint guarantee applies to the generated events; the existing collator
-can leave trailing tokens from an earlier, longer update after a shorter hint.
-
-For audio-backed data, continue with steps 2–5 below using the generated
-`oracle_raw` directory. You can pass the same `--text_tokenizer_path` to
-`tools.tokenize_oracle` for local-only oracle tokenization. The small sample
-contains text only; it demonstrates oracle generation and does not include
-training audio. Randomization changes training guidance; inference still uses
-the usual KAME back-end LLM.
+The default strategy is `llm`. To generate guidance by sampling training responses instead, follow the [random strategy guide](docs/random_oracle.md#generate-guidance-for-your-data), then continue with the same preprocessing steps below.
 
 ### 2. Audio Tokenization
 
@@ -256,10 +193,12 @@ If you change the text tokenizer, also use `--init_text_embeddings` and keep the
 
 ## Training
 
-For a low-memory smoke test, run:
+For a low-memory smoke test using the Parquet files prepared above, run:
 
 ```bash
-MAX_TRAIN_STEPS=3 bash examples/finetune_accelerate_cpu_offload.sh
+TRAIN_DATA_GLOB='processed_data/my_dataset/train_text_oracle_a0b1_events-*.parquet' \
+MAX_TRAIN_STEPS=3 \
+bash examples/finetune_accelerate_cpu_offload.sh
 ```
 
 This smoke example keeps the default finetuning target but uses a more conservative DeepSpeed configuration with CPU offload. It is intentionally slower, but is a better fit for validating that the public workflow runs end to end on a single GPU.
@@ -267,16 +206,21 @@ This smoke example keeps the default finetuning target but uses a more conservat
 For a fuller training run, use:
 
 ```bash
+TRAIN_DATA_GLOB='processed_data/my_dataset/train_text_oracle_a0b1_events-*.parquet' \
 bash examples/finetune_accelerate.sh
 ```
 
 This reference script uses the default KAME finetuning target and a faster DeepSpeed configuration, but it may require substantial GPU memory. In practice, full finetuning may need multi-GPU execution depending on your hardware.
+
+If you prepared data without oracle predictions, add `USE_ORACLE=0` to either training command.
 
 The current training implementation requires DeepSpeed, so both examples use Accelerate with a DeepSpeed config. On managed clusters you may wrap these commands in your own scheduler submission flow such as `sbatch`, but scheduler-specific scripts are intentionally omitted from this public repository.
 
 ## Convert and Clean Checkpoints for Inference
 
 After training, convert checkpoints in two stages:
+
+The examples below use `output/moshiko-finetuned/step_10000`. Replace this with a checkpoint saved by your run. A completed three-step smoke test saves to `output/moshiko-finetuned-cpuoffload-smoke/step_3`; use that training directory and step in the conversion and inference paths below.
 
 ### 1. Convert DeepSpeed checkpoints to fp32 safetensors
 
