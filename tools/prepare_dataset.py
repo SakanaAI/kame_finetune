@@ -2,8 +2,11 @@ import argparse
 import os
 
 import numpy as np
-import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from tqdm import tqdm
+
+from utils.dataset_schema import prepared_dataset_features
 
 
 def merge_text_audio(
@@ -76,6 +79,7 @@ def main(args):
 
     num_dialogues = len(dialogue_names)
     num_parquets = -(-num_dialogues // args.num_examples_per_parquet)
+    schema = prepared_dataset_features(use_oracle=oracle_dialogue_names is not None).arrow_schema
 
     for i in range(num_parquets):
         dials_per_parquet = dialogue_names[
@@ -125,6 +129,18 @@ def main(args):
                         f"dialogue={dialogue_name}, keys={list(oracle_data.keys())}"
                     )
 
+                hint_keys = [f"{sp}_event_use_hint" for sp in ("A", "B")]
+                has_hint = [key in oracle_data for key in hint_keys]
+                if any(has_hint) and not all(has_hint):
+                    raise ValueError("event_use_hint must be present for both channels or neither")
+                if all(has_hint):
+                    for sp in ("A", "B"):
+                        mask = oracle_data[f"{sp}_event_use_hint"]
+                        positions = oracle_data[f"{sp}_event_frame_pos"]
+                        if mask.shape != positions.shape or not np.isin(mask, [0, 1]).all():
+                            raise ValueError(f"Invalid event_use_hint for {dialogue_name}/{sp}")
+                        rec[f"{sp}_oracle_event_use_hint"] = mask.astype(np.int8).tolist()
+
                 rec["A_oracle_event_frame_pos"] = (
                     oracle_data["A_event_frame_pos"].astype(np.int32).tolist()
                 )
@@ -163,9 +179,8 @@ def main(args):
             data.append(rec)
 
         # save the merged data
-        df = pd.DataFrame(data)
         output_path = f"{args.output_prefix}-{i + 1:03d}-of-{num_parquets:03d}.parquet"
-        df.to_parquet(output_path, index=False)
+        pq.write_table(pa.Table.from_pylist(data, schema=schema), output_path)
 
 
 if __name__ == "__main__":

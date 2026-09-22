@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ DEFAULT_MODEL_NAME = "gpt-4.1-nano"
 
 
 def prediction_to_record(prediction: OraclePrediction) -> dict[str, object]:
-    return {
+    record = {
         "timestamp_ms": prediction.timestamp_ms,
         "conversation_context": prediction.conversation_context,
         "prediction": prediction.prediction,
@@ -28,6 +29,9 @@ def prediction_to_record(prediction: OraclePrediction) -> dict[str, object]:
         "channel": prediction.channel,
         "hint": prediction.hint,
     }
+    if prediction.use_hint is not None:
+        record["use_hint"] = prediction.use_hint
+    return record
 
 
 def fallback_prediction_for_request(request: OraclePredictionRequest) -> str:
@@ -190,7 +194,89 @@ def process_text_file(
     return len(oracle_records)
 
 
+def _run_random(args: argparse.Namespace) -> None:
+    from sentencepiece import SentencePieceProcessor
+
+    from tools.random_oracle import build_response_pool, generate_random_predictions
+
+    if args.pool_text_dir is None or args.text_tokenizer_path is None:
+        raise ValueError("random requires --pool_text_dir and --text_tokenizer_path")
+    if args.resume:
+        raise ValueError("random generation requires a fresh output directory; omit --resume")
+    output_dir = Path(args.output_dir)
+    if output_dir.exists() and any(output_dir.iterdir()):
+        raise ValueError("random generation requires an empty output directory")
+    text_paths = sorted(Path(args.text_dir).glob("*.json"))
+    pool_paths = sorted(Path(args.pool_text_dir).glob("*.json"))
+    if args.limit is not None:
+        if args.limit <= 0:
+            raise ValueError("--limit must be positive")
+        text_paths = text_paths[: args.limit]
+    if not text_paths or not pool_paths:
+        raise ValueError("Both --text_dir and --pool_text_dir must contain transcript JSON files")
+    if any(path.name == "manifest.json" for path in text_paths):
+        raise ValueError("The dialogue filename manifest.json is reserved for generation metadata")
+    tokenizer_path = Path(args.text_tokenizer_path)
+    tokenizer = SentencePieceProcessor(model_file=str(tokenizer_path))
+
+    def read_words(path: Path):
+        return words_from_word_transcript(json.loads(path.read_text(encoding="utf-8")))
+
+    pool = build_response_pool(
+        ((path.stem, read_words(path)) for path in pool_paths),
+        tokenizer,
+        time_interval=args.time_interval,
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for path in text_paths:
+        predictions = generate_random_predictions(
+            read_words(path),
+            dialogue_id=path.stem,
+            pool=pool,
+            tokenizer=tokenizer,
+            seed=args.seed,
+            time_interval=args.time_interval,
+            target_channel=args.target_channel,
+            speaker_to_channel={"A": args.A_channel, "B": args.B_channel},
+            min_length_ratio=args.min_length_ratio,
+            max_length_ratio=args.max_length_ratio,
+        )
+        records = [prediction_to_record(prediction) for prediction in predictions]
+        temporary_path = output_dir / f".{path.stem}.tmp"
+        temporary_path.write_text(
+            json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        temporary_path.replace(output_dir / path.name)
+        print(f"Wrote {len(records)} random oracle events to {output_dir / path.name}")
+
+    def fingerprint(path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    # Written only after every dialogue succeeds. No machine-specific paths or API receipts.
+    manifest = {
+        "schema_version": "random_oracle_v1",
+        "seed": args.seed,
+        "time_interval": args.time_interval,
+        "target_channel": args.target_channel,
+        "speaker_to_channel": {"A": args.A_channel, "B": args.B_channel},
+        "min_length_ratio": args.min_length_ratio,
+        "max_length_ratio": args.max_length_ratio,
+        "hint_policy": "final_scheduled_event_must_use_hint",
+        "tokenizer_sha256": fingerprint(tokenizer_path),
+        "inputs": {path.name: fingerprint(path) for path in text_paths},
+        "pool_inputs": {path.name: fingerprint(path) for path in pool_paths},
+        "pool_size": len(pool),
+        "outputs": {path.name: fingerprint(output_dir / path.name) for path in text_paths},
+    }
+    (output_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
+
+
 def main(args: argparse.Namespace) -> None:
+    if getattr(args, "strategy", "llm") == "random":
+        _run_random(args)
+        return
     speaker_to_channel = {"A": args.A_channel, "B": args.B_channel}
     predict_fn = make_openai_predict_fn(
         model_name=args.model,
@@ -228,6 +314,18 @@ if __name__ == "__main__":
     parser.add_argument("--text_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL_NAME)
+    parser.add_argument("--strategy", choices=["llm", "random"], default="llm")
+    parser.add_argument(
+        "--pool_text_dir",
+        type=str,
+        help="Training-only transcript directory for random candidates.",
+    )
+    parser.add_argument(
+        "--text_tokenizer_path", type=str, help="Local SentencePiece model used by tokenization."
+    )
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--min_length_ratio", type=float, default=0.5)
+    parser.add_argument("--max_length_ratio", type=float, default=2.0)
     parser.add_argument("--time_interval", type=float, default=0.5)
     parser.add_argument("--target_channel", type=int, choices=[0, 1], default=None)
     parser.add_argument("--A_channel", type=int, default=0)

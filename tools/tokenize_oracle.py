@@ -60,6 +60,11 @@ def _save_tokenized_oracle(output_path: str, a_evt: dict, b_evt: dict) -> None:
         "B_hint_values": b_evt["hint_values"],
         "B_hint_offsets": b_evt["hint_offsets"],
     }
+    if ("event_use_hint" in a_evt) != ("event_use_hint" in b_evt):
+        raise ValueError("event_use_hint must be present for both channels or neither")
+    if "event_use_hint" in a_evt:
+        payload["A_event_use_hint"] = a_evt["event_use_hint"]
+        payload["B_event_use_hint"] = b_evt["event_use_hint"]
     try:
         np.savez_compressed(output_path, **payload)
     except Exception as e:
@@ -78,6 +83,17 @@ def _is_valid_tokenized_oracle(path: str, *, validate_contents: bool = False) ->
             if missing_keys:
                 print(f"Invalid tokenized oracle file {path}: missing keys {missing_keys}")
                 return False
+            flags = [f"{sp}_event_use_hint" in npz.files for sp in ("A", "B")]
+            if any(flags) and not all(flags):
+                return False
+            if all(flags):
+                for sp in ("A", "B"):
+                    mask = npz[f"{sp}_event_use_hint"]
+                    if (
+                        mask.shape != npz[f"{sp}_event_frame_pos"].shape
+                        or not np.isin(mask, [0, 1]).all()
+                    ):
+                        return False
             if validate_contents:
                 for key in TOKENIZED_ORACLE_NPZ_KEYS:
                     _ = npz[key]
@@ -164,6 +180,10 @@ def build_oracle_events_for_channel(
     event_frame_pos: list[int] = []
     event_ratio: list[float] = []
     event_skip_forbid: list[int] = []  # 1 if skip is forbidden for this event, else 0
+    event_use_hint: list[int] = []
+    explicit_hints = any("use_hint" in entry for entry in oracle_data)
+    if explicit_hints and not all(type(entry.get("use_hint")) is bool for entry in oracle_data):
+        raise ValueError("use_hint must be a boolean on every oracle event or absent on all")
 
     pred_token_lists: list[list[int]] = []
     hint_token_lists: list[list[int]] = []
@@ -205,6 +225,11 @@ def build_oracle_events_for_channel(
         pred_tokens = tokenize(tokenizer, pred_text, bos=False) if pred_text else []
         hint_tokens = tokenize(tokenizer, hint_text, bos=False) if hint_text else []
 
+        if explicit_hints:
+            selected = hint_tokens if entry["use_hint"] else pred_tokens
+            if not selected:
+                raise ValueError(f"use_hint selects empty text at timestamp_ms={ts_ms}")
+
         # Drop events with no usable tokens at all
         if not pred_tokens and not hint_tokens:
             continue
@@ -212,13 +237,15 @@ def build_oracle_events_for_channel(
         event_frame_pos.append(frame_pos)
         event_ratio.append(ratio_f)
         event_skip_forbid.append(1 if is_last_entry else 0)
+        if explicit_hints:
+            event_use_hint.append(int(entry["use_hint"]))
         pred_token_lists.append(pred_tokens)
         hint_token_lists.append(hint_tokens)
 
     pred_values, pred_offsets = _pack_ragged_tokens(pred_token_lists)
     hint_values, hint_offsets = _pack_ragged_tokens(hint_token_lists)
 
-    return {
+    events: dict[str, np.ndarray] = {
         "event_frame_pos": np.asarray(event_frame_pos, dtype=np.int32),
         "event_ratio": np.asarray(event_ratio, dtype=np.float32),
         "event_skip_forbid": np.asarray(event_skip_forbid, dtype=np.int8),
@@ -227,10 +254,16 @@ def build_oracle_events_for_channel(
         "hint_values": hint_values,
         "hint_offsets": hint_offsets,
     }
+    if explicit_hints:
+        events["event_use_hint"] = np.asarray(event_use_hint, dtype=np.int8)
+    return events
 
 
 def worker(process_id: int, dialogue_names: list[str], args: argparse.Namespace) -> None:
-    sp = SentencePieceProcessor(hf_hub_download(args.text_tokenizer_repo, args.text_tokenizer_name))
+    tokenizer_path = getattr(args, "text_tokenizer_path", None) or hf_hub_download(
+        args.text_tokenizer_repo, args.text_tokenizer_name
+    )
+    sp = SentencePieceProcessor(tokenizer_path)
 
     pbar = tqdm(dialogue_names, desc=f"Worker {process_id}", dynamic_ncols=True)
     for dialogue_name in pbar:
@@ -368,6 +401,11 @@ if __name__ == "__main__":
         "--text_tokenizer_name",
         type=str,
         default="tokenizer_spm_32k_3.model",
+    )
+    parser.add_argument(
+        "--text_tokenizer_path",
+        type=str,
+        help="Use a local SentencePiece model without downloading.",
     )
 
     parser.add_argument(

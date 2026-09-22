@@ -29,6 +29,8 @@ The public preprocessing entry point is a canonical dataset layout built from st
 
 This repository also includes a small sample under `data/spokenwoz_sample/{audio,text,oracle_raw}` so you can run the preprocessing steps on a bundled example before using your own data.
 
+For an alternative way to prepare training guidance without LLM calls, see [Randomized Training Guidance](docs/random_oracle.md). Its [text-only demo](data/random_oracle_sample/README.md) runs oracle generation on CPU.
+
 ## Installation
 
 Python 3.12+ is required.
@@ -93,11 +95,15 @@ If oracle predictions are already present, `oracle_raw/*.json` should follow thi
 
 The `hint` field is intentionally empty when `current_spoken_ratio <= 0.5`.
 
+Random-oracle files also include `use_hint` to select the guidance text. See [Oracle Selection Format](docs/random_oracle.md#oracle-selection-format) for this optional field and compatibility with existing data.
+
 ## Standard Preprocessing
+
+The commands below use `my_dataset` as the dataset name. To use the bundled audio sample, replace `my_dataset` with `spokenwoz_sample` in the data and Parquet paths.
 
 ### 1. Optional: Generate `oracle_raw` From Canonical Text Transcripts
 
-If your dataset does not already include oracle predictions, generate them directly from `text/*.json`:
+If your dataset already includes oracle predictions, as the bundled SpokenWOZ sample does, continue with step 2. Otherwise, generate them with an LLM directly from `text/*.json`:
 
 ```bash
 export OPENAI_API_KEY=...
@@ -108,6 +114,8 @@ uv run --extra oracle -m tools.generate_oracle_from_text \
 ```
 
 By default this command assumes the canonical mapping `A_channel=0` and `B_channel=1`.
+
+The default strategy is `llm`. To generate guidance by sampling training responses instead, follow the [random strategy guide](docs/random_oracle.md#generate-guidance-for-your-data), then continue with the same preprocessing steps below.
 
 ### 2. Audio Tokenization
 
@@ -185,10 +193,12 @@ If you change the text tokenizer, also use `--init_text_embeddings` and keep the
 
 ## Training
 
-For a low-memory smoke test, run:
+For a low-memory smoke test using the Parquet files prepared above, run:
 
 ```bash
-MAX_TRAIN_STEPS=3 bash examples/finetune_accelerate_cpu_offload.sh
+TRAIN_DATA_GLOB='processed_data/my_dataset/train_text_oracle_a0b1_events-*.parquet' \
+MAX_TRAIN_STEPS=3 \
+bash examples/finetune_accelerate_cpu_offload.sh
 ```
 
 This smoke example keeps the default finetuning target but uses a more conservative DeepSpeed configuration with CPU offload. It is intentionally slower, but is a better fit for validating that the public workflow runs end to end on a single GPU.
@@ -196,16 +206,21 @@ This smoke example keeps the default finetuning target but uses a more conservat
 For a fuller training run, use:
 
 ```bash
+TRAIN_DATA_GLOB='processed_data/my_dataset/train_text_oracle_a0b1_events-*.parquet' \
 bash examples/finetune_accelerate.sh
 ```
 
 This reference script uses the default KAME finetuning target and a faster DeepSpeed configuration, but it may require substantial GPU memory. In practice, full finetuning may need multi-GPU execution depending on your hardware.
+
+If you prepared data without oracle predictions, add `USE_ORACLE=0` to either training command.
 
 The current training implementation requires DeepSpeed, so both examples use Accelerate with a DeepSpeed config. On managed clusters you may wrap these commands in your own scheduler submission flow such as `sbatch`, but scheduler-specific scripts are intentionally omitted from this public repository.
 
 ## Convert and Clean Checkpoints for Inference
 
 After training, convert checkpoints in two stages:
+
+The examples below use `output/moshiko-finetuned/step_10000`. Replace this with a checkpoint saved by your run. A completed three-step smoke test saves to `output/moshiko-finetuned-cpuoffload-smoke/step_3`; use that training directory and step in the conversion and inference paths below.
 
 ### 1. Convert DeepSpeed checkpoints to fp32 safetensors
 
