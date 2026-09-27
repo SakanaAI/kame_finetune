@@ -2,9 +2,9 @@
 
 KAME training uses text guidance, called an oracle, for upcoming spoken responses.
 The random strategy prepares this guidance from transcripts without calling an LLM:
-intermediate updates use responses sampled from other training dialogues, and the final
-scheduled update for each target response selects its ground-truth transcript as a hint.
-Here, "final" means the last guidance update for that response, not the end of its audio.
+each response group retains its last available ground-truth hint, and all other updates
+use responses sampled from other training dialogues. Groups without an available hint
+use random responses throughout. The existing update times are preserved.
 
 This strategy uses the existing preprocessing and training workflow. It replaces LLM calls
 during guidance preparation; inference still uses the KAME back-end LLM. The default
@@ -20,8 +20,9 @@ Run these commands from the repository root after [installation](../README.md#in
 ### 1. Prepare the Inputs
 
 - Prepare [canonical word-timed A/B transcripts](../README.md#canonical-dataset-layout).
-  Words must be ordered and non-overlapping. Real recordings may need preprocessing for
-  short backchannels, turn boundaries, and overlapping speech.
+  Overlapping words and short responses are accepted. The shared generator uses the
+  supplied word order and timestamps to extract responses; random generation does not
+  reorder words or add updates for short turns. Check the extracted hints for your data.
 - Choose a candidate pool containing **training transcripts only**. Do not add validation
   or test transcripts. Keep dialogue filenames stable and unique across splits.
 - Use the SentencePiece tokenizer used by your training setup. For the standard English
@@ -44,10 +45,10 @@ uv run -m tools.generate_oracle_from_text \
 ```
 
 This creates `data/my_dataset/oracle_raw/<dialogue_id>.json` for each transcript.
-After all dialogues succeed, `manifest.json` records the settings, hint policy, and hashes
-of the inputs, pool transcripts, tokenizer, and outputs. If a target response has no
-scheduled events or cannot end with an eligible hint, generation stops with an error;
-see [Troubleshooting](#troubleshooting).
+After all dialogues succeed, `manifest.json` records the settings, hint policy, hashes
+of the inputs, pool transcripts, tokenizer, and outputs, and per-dialogue and total
+statistics. The totals are also printed. Missing hints or updates are counted rather
+than rejected; see [Generation Rules](#generation-rules).
 
 ### 3. Continue with Preprocessing and Training
 
@@ -60,9 +61,9 @@ Use the same tokenizer for generation and tokenization; `tools.tokenize_oracle` 
 `--text_tokenizer_path` for a local model. Keep any custom A/B channel mapping consistent
 between both commands.
 
-Before training, note that the final-hint guarantee applies to the generated event sequence.
-The existing collator can retain trailing tokens from an earlier, longer update after a
-shorter hint. This implementation does not change that behavior.
+Before training, note that selecting a hint does not guarantee a pure hint in the final
+training tensor: the existing collator can retain trailing tokens from an earlier,
+longer update after a shorter hint. This implementation does not change that behavior.
 
 Follow [Model Initialization](../README.md#model-initialization) and
 [Training](../README.md#training), setting `TRAIN_DATA_GLOB` to those Parquet files.
@@ -70,25 +71,36 @@ The text-only demo supplies no audio for these steps.
 
 ## Generation Rules
 
-Each turn following a speaker change is a target response; the opening turn is excluded.
-Targets are identified by their transcript start index and speaker, so repeated response
-text remains separate. By default both channels are included, with A mapped to 0 and B to 1.
+Updates from the shared generator are grouped by their target start index and speaker,
+so repeated response text remains separate. By default both channels are included,
+with A mapped to 0 and B to 1.
 `--target_channel` filters targets using the mapping set by `--A_channel` and `--B_channel`.
 
-Event times and hint eligibility use the existing generator, with `--time_interval 0.5`
-by default. Each target must have at least one event, and its last event must have a
-nonempty hint and `current_spoken_ratio > 0.5`. Earlier events receive random responses.
-A single hint-only event is valid; the ratio need not increase monotonically. The generator
-does not add endpoint events or silently drop targets that fail these conditions.
+Event times and hint availability use the existing generator, with `--time_interval 0.5`
+by default. A nonempty hint is available when `current_spoken_ratio > 0.5`. Each group
+selects its last available hint, if any; all remaining events receive random responses,
+including events after the selected hint. A group with no available hint uses only random
+responses. The generator does not add endpoint events or require an event for every turn.
+An empty event sequence is saved as `[]`.
 
-Candidate responses are extracted from the pool transcripts using the same generator and
-deduplicated by token sequence. Sampling excludes the current dialogue and all its turn
-texts, keeps candidates within 0.5–2 times the target's token length, and samples without
-replacement within each response. Adjust the bounds with `--min_length_ratio` and
+The text of the selected hint is the reference for token-length filtering. If no hint
+is available, the last update's extracted response text is used. Pool construction uses
+the same rule, then deduplicates by token sequence. Sampling excludes the current dialogue
+and all its turn texts, keeps candidates within 0.5–2 times the reference's token length,
+and samples without replacement within each response group. Adjust the bounds with `--min_length_ratio` and
 `--max_length_ratio`. Too few eligible candidates raises an error.
 
 The seed and stable dialogue/response identities make results independent of dialogue
 processing order for the same inputs, tokenizer, and settings.
+
+The manifest's `statistics` contains `dialogues` and `totals`, with event, response-group
+and selected-hint counts plus:
+
+- `groups_without_hint`: groups that receive only random responses.
+- `groups_with_updates_after_hint`: groups with updates after their selected hint.
+- `transcript_turns_without_events`: consecutive same-speaker word blocks without a
+  targeted update, excluding the opening block and channels not selected for generation.
+  This counts blocks in the supplied transcript, not inferred conversational turns.
 
 ## Oracle Selection Format
 
@@ -120,13 +132,7 @@ mode, explicit random events are omitted. Timing jitter and shifts still apply.
 
 ## Troubleshooting
 
-Response validation errors identify the dialogue, target start index, speaker/channel,
-and, when available, the last event's time and ratio.
-
 | Error | What to check |
 | --- | --- |
-| `no_scheduled_events` | The target has no events at the chosen interval. Check timestamps and turn boundaries; a shorter `--time_interval` may help if appropriate for the data. |
-| `no_eligible_hint` | No event can select a nonempty hint with ratio greater than 0.5. Inspect the indicated turn and its scheduled updates. |
-| `events_after_last_eligible_hint` | An eligible hint is followed by an ineligible update. Review pauses and turn segmentation; the shared ratio calculation can decrease after a pause. |
 | `Insufficient random responses` | Supply more training dialogues or widen the token-length bounds. The pool must still exclude validation/test data. |
 | `requires an empty output directory` | Choose a fresh `--output_dir` for the new run. |

@@ -228,8 +228,9 @@ def _run_random(args: argparse.Namespace) -> None:
         time_interval=args.time_interval,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
+    statistics: dict[str, dict[str, int]] = {}
     for path in text_paths:
-        predictions = generate_random_predictions(
+        result = generate_random_predictions(
             read_words(path),
             dialogue_id=path.stem,
             pool=pool,
@@ -241,7 +242,8 @@ def _run_random(args: argparse.Namespace) -> None:
             min_length_ratio=args.min_length_ratio,
             max_length_ratio=args.max_length_ratio,
         )
-        records = [prediction_to_record(prediction) for prediction in predictions]
+        records = [prediction_to_record(prediction) for prediction in result.predictions]
+        statistics[path.name] = result.statistics
         temporary_path = output_dir / f".{path.stem}.tmp"
         temporary_path.write_text(
             json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -252,6 +254,10 @@ def _run_random(args: argparse.Namespace) -> None:
     def fingerprint(path: Path) -> str:
         return hashlib.sha256(path.read_bytes()).hexdigest()
 
+    totals = {
+        key: sum(counts[key] for counts in statistics.values())
+        for key in next(iter(statistics.values()))
+    }
     # Written only after every dialogue succeeds. No machine-specific paths or API receipts.
     manifest = {
         "schema_version": "random_oracle_v1",
@@ -261,7 +267,11 @@ def _run_random(args: argparse.Namespace) -> None:
         "speaker_to_channel": {"A": args.A_channel, "B": args.B_channel},
         "min_length_ratio": args.min_length_ratio,
         "max_length_ratio": args.max_length_ratio,
-        "hint_policy": "final_scheduled_event_must_use_hint",
+        "hint_policy": "last_eligible_hint_if_available",
+        "statistics": {
+            "dialogues": statistics,
+            "totals": totals,
+        },
         "tokenizer_sha256": fingerprint(tokenizer_path),
         "inputs": {path.name: fingerprint(path) for path in text_paths},
         "pool_inputs": {path.name: fingerprint(path) for path in pool_paths},
@@ -271,6 +281,7 @@ def _run_random(args: argparse.Namespace) -> None:
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
     )
+    print("Random oracle totals: " + json.dumps(totals, sort_keys=True))
 
 
 def main(args: argparse.Namespace) -> None:

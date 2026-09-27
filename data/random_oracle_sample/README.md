@@ -49,6 +49,8 @@ uv run -m tools.generate_oracle_from_text \
 This creates six dialogue JSON files and a `manifest.json` in
 `processed_data/random_oracle_sample/oracle_raw`. Each dialogue has three random updates
 followed by one selected ground-truth hint.
+The manifest also reports event and hint counts. These simple dialogues all have an
+available hint at their last update; other inputs may have missing or nonterminal hints.
 
 ## 3. Check the Output
 

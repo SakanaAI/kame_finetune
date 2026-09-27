@@ -1,4 +1,4 @@
-"""CPU-only random oracle construction for turn-aligned A/B transcripts."""
+"""CPU-only random oracle construction from word-timed A/B transcripts."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from sentencepiece import SentencePieceProcessor
 from tools.oracle_generation import (
     OracleGenerator,
     OraclePrediction,
+    OraclePredictionRequest,
     Word,
     prediction_from_request,
 )
@@ -27,9 +28,40 @@ class ResponseCandidate:
     owners: frozenset[str]
 
 
+@dataclass(frozen=True)
+class RandomOracleResult:
+    predictions: list[OraclePrediction]
+    statistics: dict[str, int]
+
+
+@dataclass(frozen=True)
+class _ResponseGroup:
+    indices: list[int]
+    hint_index: int | None
+    reference_text: str
+
+
+def _response_groups(
+    requests: Sequence[OraclePredictionRequest],
+) -> dict[tuple[int, str], _ResponseGroup]:
+    indices_by_target: dict[tuple[int, str], list[int]] = defaultdict(list)
+    for index, request in enumerate(requests):
+        indices_by_target[request.target_index, request.next_speaker].append(index)
+    groups = {}
+    for key, indices in indices_by_target.items():
+        hint_index = next(
+            (i for i in reversed(indices) if prediction_from_request(requests[i], "").hint.strip()),
+            None,
+        )
+        reference_index = hint_index if hint_index is not None else indices[-1]
+        groups[key] = _ResponseGroup(
+            indices, hint_index, requests[reference_index].next_utterance_hint
+        )
+    return groups
+
+
 def validate_transcript(words: Sequence[Word]) -> None:
-    """Validate the non-overlapping, word-timed input supported by this example."""
-    previous_end = 0.0
+    """Validate individual words, allowing overlap and retaining the supplied order."""
     for word in words:
         if word.speaker not in {"A", "B"} or not word.text.strip():
             raise ValueError("Random oracle input requires nonempty words and A/B speakers")
@@ -39,9 +71,6 @@ def validate_transcript(words: Sequence[Word]) -> None:
             and 0 <= word.start_time <= word.end_time
         ):
             raise ValueError("Word times must be finite with 0 <= start <= end")
-        if word.start_time < previous_end:
-            raise ValueError("Random oracle input requires ordered, non-overlapping words")
-        previous_end = word.end_time
 
 
 def build_response_pool(
@@ -56,8 +85,9 @@ def build_response_pool(
     generator = OracleGenerator(time_interval=time_interval)
     for dialogue_id, words in dialogues:
         validate_transcript(words)
-        for request in generator.generate_requests(words):
-            text = request.next_utterance_hint
+        requests = list(generator.generate_requests(words))
+        for group in _response_groups(requests).values():
+            text = group.reference_text
             tokens = tuple(tokenizer.encode(text, out_type=int))
             if not tokens:
                 continue
@@ -126,8 +156,8 @@ def generate_random_predictions(
     speaker_to_channel: Mapping[str, int] | None = None,
     min_length_ratio: float = 0.5,
     max_length_ratio: float = 2.0,
-) -> list[OraclePrediction]:
-    """Require a final eligible hint per response; randomize preceding events.
+) -> RandomOracleResult:
+    """Retain the last available hint per response and randomize all other events.
 
     Event times, response extraction and hint eligibility (> half the input words)
     follow OracleGenerator. No event is added to force an endpoint hint.
@@ -144,63 +174,41 @@ def generate_random_predictions(
         target_channel=target_channel,
         speaker_to_channel=speaker_to_channel,
     )
-    # Enumerate independently of the schedule so even responses with no events
-    # are checked. The opening turn is not a response to a preceding turn.
-    targets = [
-        (index, word.speaker)
-        for index, word in enumerate(words)
-        if index > 0
-        and word.speaker != words[index - 1].speaker
-        and (target_channel is None or generator.speaker_to_channel[word.speaker] == target_channel)
-    ]
     requests = list(generator.generate_requests(words))
-    groups: dict[tuple[int, str], list[int]] = defaultdict(list)
-    for index, request in enumerate(requests):
-        groups[request.target_index, request.next_speaker].append(index)
-
-    # Validate every target before sampling, without changing the shared schedule
-    # or ratio calculation. A single hint-only event is sufficient.
-    for target_index, speaker in targets:
-        indices = groups[target_index, speaker]
-        eligible = [
-            i
-            for i in indices
-            if requests[i].current_spoken_ratio > 0.5 and requests[i].next_utterance_hint.strip()
-        ]
-        reason = None
-        if not indices:
-            reason = "no_scheduled_events"
-        elif not eligible:
-            reason = "no_eligible_hint"
-        elif eligible[-1] != indices[-1]:
-            reason = "events_after_last_eligible_hint"
-        if reason is not None:
-            details = ""
-            if indices:
-                last = requests[indices[-1]]
-                details = (
-                    f" last_event_ms={last.timestamp_ms} last_ratio={last.current_spoken_ratio}"
-                )
-            raise ValueError(
-                f"Invalid random oracle: dialogue={dialogue_id!r} "
-                f"target_index={target_index} speaker={speaker} "
-                f"channel={generator.speaker_to_channel[speaker]} reason={reason}{details}"
-            )
-
-    # Exclude text in any turn of this dialogue, including its opening turn.
-    excluded_tokens = {
-        tuple(tokenizer.encode(" ".join(w.text for w in turn), out_type=int))
-        for _speaker, turn in groupby(words, key=lambda w: w.speaker)
+    groups = _response_groups(requests)
+    statistics = {
+        "events": len(requests),
+        "response_groups": len(groups),
+        "selected_hints": sum(group.hint_index is not None for group in groups.values()),
+        "groups_without_hint": sum(group.hint_index is None for group in groups.values()),
+        "groups_with_updates_after_hint": sum(
+            group.hint_index is not None and group.hint_index != group.indices[-1]
+            for group in groups.values()
+        ),
+        "transcript_turns_without_events": 0,
     }
+
+    # Transcript blocks serve text exclusion and diagnostics, not event generation.
+    covered_indices = {request.target_index for request in requests}
+    excluded_tokens = set()
+    for speaker, block in groupby(enumerate(words), key=lambda item: item[1].speaker):
+        turn = list(block)
+        excluded_tokens.add(
+            tuple(tokenizer.encode(" ".join(word.text for _, word in turn), out_type=int))
+        )
+        if (
+            turn[0][0] > 0
+            and (target_channel is None or generator.speaker_to_channel[speaker] == target_channel)
+            and not any(index in covered_indices for index, _word in turn)
+        ):
+            statistics["transcript_turns_without_events"] += 1
     excluded_tokens.update(
-        tuple(tokenizer.encode(request.next_utterance_hint, out_type=int)) for request in requests
+        tuple(tokenizer.encode(text, out_type=int))
+        for text in {request.next_utterance_hint for request in requests}
     )
     predictions: dict[int, OraclePrediction] = {}
-    for target_index, speaker in targets:
-        indices = groups[target_index, speaker]
-        hint_index = indices[-1]
-        random_indices = indices[:-1]
-        target = requests[indices[0]].next_utterance_hint
+    for (target_index, speaker), group in groups.items():
+        random_indices = [i for i in group.indices if i != group.hint_index]
         key = f"{seed}\0{dialogue_id}\0{target_index}\0{speaker}".encode()
         rng = random.Random(int.from_bytes(hashlib.sha256(key).digest(), "big"))
         texts = _sample_responses(
@@ -208,12 +216,15 @@ def generate_random_predictions(
             count=len(random_indices),
             dialogue_id=dialogue_id,
             excluded_tokens=excluded_tokens,
-            target_length=len(tokenizer.encode(target, out_type=int)),
+            target_length=len(tokenizer.encode(group.reference_text, out_type=int)),
             min_length_ratio=min_length_ratio,
             max_length_ratio=max_length_ratio,
             rng=rng,
         )
         for index, text in zip(random_indices, texts, strict=True):
             predictions[index] = prediction_from_request(requests[index], text, use_hint=False)
-        predictions[hint_index] = prediction_from_request(requests[hint_index], "", use_hint=True)
-    return [predictions[i] for i in range(len(requests))]
+        if group.hint_index is not None:
+            predictions[group.hint_index] = prediction_from_request(
+                requests[group.hint_index], "", use_hint=True
+            )
+    return RandomOracleResult([predictions[i] for i in range(len(requests))], statistics)

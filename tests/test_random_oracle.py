@@ -12,7 +12,7 @@ from datasets import load_dataset
 
 from tools import generate_oracle_from_text, prepare_dataset, tokenize_oracle
 from tools.oracle_generation import OracleGenerator, Word, words_from_word_transcript
-from tools.random_oracle import build_response_pool, generate_random_predictions
+from tools.random_oracle import ResponseCandidate, build_response_pool, generate_random_predictions
 from utils.data import DataCollator, preprocess_function
 from utils.dataset_schema import preprocessed_dataset_features
 
@@ -47,7 +47,7 @@ def test_random_generation_preserves_schedule_and_selects_distinct_cross_dialogu
         requests = list(OracleGenerator().generate_requests(words))
         predictions = generate_random_predictions(
             words, dialogue_id=dialogue_id, pool=pool, tokenizer=tokenizer
-        )
+        ).predictions
         assert [p.timestamp_ms for p in predictions] == [r.timestamp_ms for r in requests]
         assert [p.channel for p in predictions] == [r.target_channel for r in requests]
         assert [p.use_hint for p in predictions] == [False, False, False, True]
@@ -67,14 +67,16 @@ def test_seed_is_reproducible_across_dialogue_order_and_changes_random_text(samp
     reverse_pool = build_response_pool(reversed(list(dialogues.items())), tokenizer)
     assert reverse_pool == pool
     words = dialogues["japan"]
-    first = generate_random_predictions(words, dialogue_id="japan", pool=pool, tokenizer=tokenizer)
+    first = generate_random_predictions(
+        words, dialogue_id="japan", pool=pool, tokenizer=tokenizer
+    ).predictions
     repeat = generate_random_predictions(
         words, dialogue_id="japan", pool=reverse_pool, tokenizer=tokenizer
-    )
+    ).predictions
     assert repeat == first
     other = generate_random_predictions(
         words, dialogue_id="japan", pool=pool, tokenizer=tokenizer, seed=777
-    )
+    ).predictions
     assert [p.prediction for p in other] != [p.prediction for p in first]
     assert other[-1] == first[-1]
 
@@ -87,7 +89,7 @@ def test_duplicate_response_owners_are_preserved_and_not_sampled(sample):
     assert duplicates[0].owners == frozenset({"japan", "copy"})
     predictions = generate_random_predictions(
         dialogues["japan"], dialogue_id="japan", pool=pool, tokenizer=tokenizer
-    )
+    ).predictions
     assert all(p.prediction != duplicates[0].text for p in predictions)
 
 
@@ -100,7 +102,7 @@ def test_insufficient_pool_fails_without_self_or_target_fallback(sample):
         )
 
 
-def test_identical_responses_in_separate_turns_keep_separate_final_hints(sample):
+def test_identical_responses_in_separate_turns_keep_separate_hints(sample):
     dialogues, tokenizer, _, pool = sample
     original = dialogues["japan"]
     offset = original[-1].end_time + 0.5
@@ -111,7 +113,7 @@ def test_identical_responses_in_separate_turns_keep_separate_final_hints(sample)
     requests = list(OracleGenerator().generate_requests(words))
     predictions = generate_random_predictions(
         words, dialogue_id="japan", pool=pool, tokenizer=tokenizer
-    )
+    ).predictions
     target_indices = {request.target_index for request in requests}
     assert len(target_indices) == 3
     for target_index in target_indices:
@@ -121,7 +123,7 @@ def test_identical_responses_in_separate_turns_keep_separate_final_hints(sample)
 
 
 @pytest.mark.parametrize("target_channel", [None, 1])
-def test_multiturn_final_hints_survive_skipping_with_channel_filter(sample, target_channel):
+def test_multiturn_selected_hints_survive_skipping_with_channel_filter(sample, target_channel):
     dialogues, tokenizer, _, pool = sample
     original = dialogues["japan"]
     words = original + [
@@ -134,7 +136,7 @@ def test_multiturn_final_hints_survive_skipping_with_channel_filter(sample, targ
         pool=pool,
         tokenizer=tokenizer,
         target_channel=target_channel,
-    )
+    ).predictions
     records = [generate_oracle_from_text.prediction_to_record(p) for p in predictions]
     events = tokenize_oracle.build_oracle_events_for_channel(records, 1, 100, tokenizer, 12.5)
     hint_indices = events["event_use_hint"].astype(bool)
@@ -198,7 +200,17 @@ def test_cli_uses_no_api_and_records_portable_reproducible_outputs(sample, tmp_p
         assert path.read_bytes() == (second / path.name).read_bytes()
     manifest = json.loads((first / "manifest.json").read_text())
     assert len(manifest["outputs"]) == 6
-    assert manifest["hint_policy"] == "final_scheduled_event_must_use_hint"
+    assert manifest["hint_policy"] == "last_eligible_hint_if_available"
+    assert manifest["statistics"]["totals"] == {
+        "events": 24,
+        "response_groups": 6,
+        "selected_hints": 6,
+        "groups_without_hint": 0,
+        "groups_with_updates_after_hint": 0,
+        "transcript_turns_without_events": 0,
+    }
+    for key, value in manifest["statistics"]["totals"].items():
+        assert value == sum(d[key] for d in manifest["statistics"]["dialogues"].values())
     with pytest.raises(ValueError, match="empty output directory"):
         generate_oracle_from_text.main(_random_args(model_path, first, seed=1))
 
@@ -333,12 +345,14 @@ def _paused_question(response_start=1.86):
 
 
 @pytest.mark.parametrize(
-    "words, reason, target_index",
+    "words, flags, no_events, no_hint, after_hint",
     [
         (
             [Word("Hello", 0, 0.1, "A"), Word("there", 0.1, 0.2, "A"), Word("Hi", 0.2, 0.3, "B")],
-            "no_scheduled_events",
-            2,
+            [],
+            1,
+            0,
+            0,
         ),
         (
             [
@@ -346,22 +360,35 @@ def _paused_question(response_start=1.86):
                 for i, t in enumerate("What is the capital".split())
             ]
             + [Word("Tokyo", 0.81, 0.91, "B")],
-            "no_eligible_hint",
-            4,
+            [False],
+            0,
+            1,
+            0,
         ),
-        (_paused_question(), "events_after_last_eligible_hint", 10),
+        (_paused_question(), [False, True, False], 0, 0, 1),
     ],
 )
-def test_invalid_terminal_hint_fails_before_sampling(sample, words, reason, target_index):
-    _, tokenizer, _, _ = sample
-    # An empty pool would fail sampling: the response contract must be checked first.
-    with pytest.raises(ValueError) as error:
-        generate_random_predictions(words, dialogue_id="edge", pool=(), tokenizer=tokenizer)
-    message = str(error.value)
-    assert f"reason={reason}" in message
-    assert f"dialogue='edge' target_index={target_index} speaker=B channel=1" in message
-    if reason != "no_scheduled_events":
-        assert "last_event_ms=" in message and "last_ratio=" in message
+def test_missing_or_nonterminal_hints_preserve_events(
+    sample, words, flags, no_events, no_hint, after_hint
+):
+    _, tokenizer, _, pool = sample
+    pool = (
+        *pool,
+        ResponseCandidate("Paris", tuple(tokenizer.encode("Paris")), frozenset({"other"})),
+    )
+    requests = list(OracleGenerator().generate_requests(words))
+    result = generate_random_predictions(words, dialogue_id="edge", pool=pool, tokenizer=tokenizer)
+    assert [p.use_hint for p in result.predictions] == flags
+    assert [p.timestamp_ms for p in result.predictions] == [r.timestamp_ms for r in requests]
+    assert all((p.hint if p.use_hint else p.prediction).strip() for p in result.predictions)
+    assert result.statistics == {
+        "events": len(flags),
+        "response_groups": int(bool(flags)),
+        "selected_hints": sum(flags),
+        "groups_without_hint": no_hint,
+        "groups_with_updates_after_hint": after_hint,
+        "transcript_turns_without_events": no_events,
+    }
 
 
 def test_nonmonotonic_ratios_are_allowed_when_final_event_has_hint(sample):
@@ -371,7 +398,7 @@ def test_nonmonotonic_ratios_are_allowed_when_final_event_has_hint(sample):
     assert [r.current_spoken_ratio for r in requests] == [1.0, 1.0, 0.3, 1.0]
     predictions = generate_random_predictions(
         words, dialogue_id="edge", pool=pool, tokenizer=tokenizer
-    )
+    ).predictions
     assert [p.use_hint for p in predictions] == [False, False, False, True]
 
 
@@ -386,7 +413,7 @@ def test_targets_respect_channel_mapping_and_allow_single_hint(sample, mapping):
         tokenizer=tokenizer,
         speaker_to_channel=mapping,
         target_channel=mapping["B"],
-    )
+    ).predictions
     assert len(predictions) == 1
     assert predictions[0].use_hint is True
     assert predictions[0].channel == mapping["B"]
@@ -398,11 +425,11 @@ def test_targets_respect_channel_mapping_and_allow_single_hint(sample, mapping):
             tokenizer=tokenizer,
             speaker_to_channel=mapping,
             target_channel=mapping["A"],
-        )
+        ).predictions
         == []
     )
-    # The final B response has no scheduled events. It is irrelevant for A-only
-    # generation, but must be rejected when B is included, even after valid targets.
+    # The final B block has no events. Report it only when B is included,
+    # without dropping the earlier scheduled events.
     words += [
         Word("Hello", 0.8, 1.1, "A"),
         Word("there", 1.1, 1.2, "A"),
@@ -415,17 +442,27 @@ def test_targets_respect_channel_mapping_and_allow_single_hint(sample, mapping):
         tokenizer=tokenizer,
         speaker_to_channel=mapping,
         target_channel=mapping["A"],
-    )
+    ).predictions
     assert len(a_predictions) == 1 and a_predictions[0].use_hint is True
-    with pytest.raises(ValueError, match="target_index=5 speaker=B.*no_scheduled_events"):
-        generate_random_predictions(
-            words,
-            dialogue_id="edge",
-            pool=(),
-            tokenizer=tokenizer,
-            speaker_to_channel=mapping,
-            target_channel=mapping["B"],
-        )
+    b_result = generate_random_predictions(
+        words,
+        dialogue_id="edge",
+        pool=(),
+        tokenizer=tokenizer,
+        speaker_to_channel=mapping,
+        target_channel=mapping["B"],
+    )
+    assert len(b_result.predictions) == 1 and b_result.predictions[0].use_hint is True
+    assert b_result.statistics["transcript_turns_without_events"] == 1
+    a_result = generate_random_predictions(
+        words,
+        dialogue_id="edge",
+        pool=(),
+        tokenizer=tokenizer,
+        speaker_to_channel=mapping,
+        target_channel=mapping["A"],
+    )
+    assert a_result.statistics["transcript_turns_without_events"] == 0
 
 
 def test_empty_json_is_unspecified_but_empty_channel_is_explicit(sample):
@@ -436,3 +473,123 @@ def test_empty_json_is_unspecified_but_empty_channel_is_explicit(sample):
     empty_channel = tokenize_oracle.build_oracle_events_for_channel(records, 0, 30, tokenizer, 12.5)
     assert empty_channel["event_use_hint"].tolist() == []
     assert empty_channel["event_use_hint"].dtype == np.int8
+
+
+def test_overlap_uses_retained_hint_as_pool_and_length_reference(sample):
+    _, tokenizer, _, pool = sample
+    words = [
+        Word("What", 0, 0.2, "A"),
+        Word("time", 0.2, 0.4, "A"),
+        Word("Tokyo", 0.3, 2.0, "B"),
+        Word("please", 0.4, 1.1, "A"),
+        *[
+            Word(text, 2 + i * 0.1, 2 + (i + 1) * 0.1, "B")
+            for i, text in enumerate("is the capital of Japan".split())
+        ],
+    ]
+    requests = list(OracleGenerator().generate_requests(words))
+    assert requests[0].next_utterance_hint == "Tokyo"
+    assert requests[-1].next_utterance_hint == "Tokyo is the capital of Japan"
+    own_pool = build_response_pool([("overlap", words)], tokenizer)
+    assert [candidate.text for candidate in own_pool] == [requests[-1].next_utterance_hint]
+    result = generate_random_predictions(
+        words, dialogue_id="overlap", pool=pool, tokenizer=tokenizer
+    )
+    assert [p.use_hint for p in result.predictions] == [False, False, False, True]
+    for request, prediction in zip(requests, result.predictions, strict=True):
+        assert prediction.timestamp_ms == request.timestamp_ms
+        assert prediction.channel == request.target_channel
+        assert prediction.current_spoken_ratio == request.current_spoken_ratio
+        assert prediction.hint == request.next_utterance_hint
+    target_length = len(tokenizer.encode(result.predictions[-1].hint))
+    assert all(
+        0.5 * target_length <= len(tokenizer.encode(p.prediction)) <= 2 * target_length
+        for p in result.predictions
+        if not p.use_hint
+    )
+    # Blocks are diagnostics only; they do not create additional response groups.
+    assert result.statistics["response_groups"] == 1
+    assert result.statistics["transcript_turns_without_events"] == 2
+
+
+def test_overlap_request_inside_transcript_block_is_not_lost(sample):
+    _, tokenizer, _, _ = sample
+    words = [
+        Word("Hello", 0, 0.2, "A"),
+        Word("Hi", 0.1, 0.3, "B"),
+        Word("Paris", 0.3, 1.2, "B"),
+        Word("there", 0.3, 0.4, "A"),
+    ]
+    requests = list(OracleGenerator().generate_requests(words))
+    assert [request.target_index for request in requests] == [2, 2]
+    pool = (ResponseCandidate("Tokyo", tuple(tokenizer.encode("Tokyo")), frozenset({"other"})),)
+    result = generate_random_predictions(
+        words, dialogue_id="overlap", pool=pool, tokenizer=tokenizer
+    )
+    assert [p.timestamp_ms for p in result.predictions] == [500, 1000]
+    assert [p.use_hint for p in result.predictions] == [False, True]
+    assert result.predictions[-1].hint == "Paris"
+    # B's block begins at index 1 and is covered by the request at index 2.
+    # The final A block has no targeted events.
+    assert result.statistics["transcript_turns_without_events"] == 1
+
+
+def test_cli_reports_dialogues_without_events(sample, tmp_path):
+    _, _, model_path, _ = sample
+    text_dir = tmp_path / "text"
+    text_dir.mkdir()
+    (text_dir / "empty.json").write_text("[]")
+    (text_dir / "short.json").write_text(
+        json.dumps(
+            [
+                {"word": "Hello", "start": 0, "end": 0.1, "speaker": "A"},
+                {"word": "there", "start": 0.1, "end": 0.2, "speaker": "A"},
+                {"word": "Hi", "start": 0.2, "end": 0.3, "speaker": "B"},
+            ]
+        )
+    )
+    output_dir = tmp_path / "oracle"
+    generate_oracle_from_text.main(_random_args(model_path, output_dir, text_dir=str(text_dir)))
+    for name in ("empty", "short"):
+        assert json.loads((output_dir / f"{name}.json").read_text()) == []
+    statistics = json.loads((output_dir / "manifest.json").read_text())["statistics"]
+    assert statistics["totals"]["events"] == 0
+    assert statistics["totals"]["transcript_turns_without_events"] == 1
+    assert statistics["dialogues"]["empty.json"]["transcript_turns_without_events"] == 0
+
+
+def test_nonterminal_selected_hint_is_protected_from_skipping(sample):
+    _, tokenizer, _, pool = sample
+    result = generate_random_predictions(
+        _paused_question(), dialogue_id="edge", pool=pool, tokenizer=tokenizer
+    )
+    records = [generate_oracle_from_text.prediction_to_record(p) for p in result.predictions]
+    events = tokenize_oracle.build_oracle_events_for_channel(records, 1, 50, tokenizer, 12.5)
+    assert events["event_use_hint"].tolist() == [0, 1, 0]
+    assert events["event_skip_forbid"].tolist() == [0, 0, 1]
+    collator = DataCollator(
+        zero_token_id=0, oracle_start_id=999, oracle_skip_prob_min=1.0, oracle_skip_prob_max=1.0
+    )
+    actual = collator._events_to_oracle_1d(
+        {f"oracle_{key}": value for key, value in events.items()}, t=50
+    )
+    assert actual[12] == 999
+
+
+@pytest.mark.parametrize(
+    "word",
+    [
+        Word("Hello", 0, 1, "C"),
+        Word(" ", 0, 1, "A"),
+        Word("Hello", -1, 1, "A"),
+        Word("Hello", 1, 0, "A"),
+        Word("Hello", 0, float("nan"), "A"),
+        Word("Hello", 0, float("inf"), "A"),
+    ],
+)
+def test_invalid_words_are_still_rejected(sample, word):
+    _, tokenizer, _, pool = sample
+    with pytest.raises(ValueError):
+        generate_random_predictions([word], dialogue_id="bad", pool=pool, tokenizer=tokenizer)
+    with pytest.raises(ValueError):
+        build_response_pool([("bad", [word])], tokenizer)
