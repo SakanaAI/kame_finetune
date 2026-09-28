@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Original canvas: 174mm x 92.8725mm, viewBox="0 0 1600 854". Trim only outer whitespace; preserve artwork coordinates. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="171.39mm" height="90.6975mm" viewBox="12 8 1576 834" role="img" aria-labelledby="title desc">
+  <title id="title">Constructing and inserting training-time guidance</title>
+  <desc id="desc">Illustrative conversation: What binds quarks in a proton? Full target response: It's the strong force. Quarks exchange gluons, which keep them bound together. Response texts are excerpts, with ellipses indicating omitted continuation. Intermediate guidance is authored for illustration, not measured LLM output. Updates at x435, x705 and x975 follow the completed prefixes What (1/6 words), What binds (2/6), and What binds quarks in (4/6); labels round these fractions to 17%, 33% and 67%. The first two excerpts, Could you clarify ... and It depends on what ..., do not identify the binding force. The strong force binds ... appears only after quarks is heard. User speech spans x300 to x1200; response speech starts at x1245. Separate target-response guidance events y remain at x1225, with boxes straddling the speech boundary. Box width is not event duration; percentages are observed-word fractions, not elapsed-time fractions, confidence or semantic similarity. All waveforms and timing are schematic. Neither matched target-response update policies nor a measured latency or monotone semantic trajectory is asserted. The training targets and inference-time LLM are unchanged.</desc>
+  <defs>
+    <style>
+      text { font-family: "DejaVu Sans", sans-serif; font-size: 26px; fill: #233442; }
+      .heading { font-size: 30px; font-weight: 700; }
+      .label { font-size: 28px; font-weight: 700; }
+      .small { font-size: 24px; }
+      .tick { font-size: 23px; }
+      .muted { fill: #61717d; }
+      .blue { fill: #355e84; }
+      .orange { fill: #aa5908; }
+      .teal { fill: #176f67; }
+      .center { text-anchor: middle; }
+      .var { font-family: "DejaVu Serif", serif; font-size: 29px; font-style: italic; }
+      .wave { fill: none; stroke: #3c4c59; stroke-width: 3; stroke-linecap: round; }
+      .axis { fill: none; stroke: #98a4ad; stroke-width: 1.6; }
+      .stream { fill: none; stroke: #657583; stroke-width: 2.5; }
+      .guide { fill: none; stroke: #c4cdd4; stroke-width: 1.5; stroke-dasharray: 5 7; }
+      .insert-blue { fill: none; stroke: #547fa5; stroke-width: 2.5; marker-end: url(#blue-arrow); }
+      .insert-orange { fill: none; stroke: #c47b25; stroke-width: 2.5; marker-end: url(#orange-arrow); }
+      .insert-teal { fill: none; stroke: #4d8c83; stroke-width: 2.5; marker-end: url(#teal-arrow); }
+    </style>
+    <marker id="time-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 4 L0 8 Z" fill="#657583"/></marker>
+    <marker id="blue-arrow" markerWidth="11" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L11 5 L0 10 Z" fill="#547fa5"/></marker>
+    <marker id="orange-arrow" markerWidth="11" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L11 5 L0 10 Z" fill="#c47b25"/></marker>
+    <marker id="teal-arrow" markerWidth="11" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L11 5 L0 10 Z" fill="#4d8c83"/></marker>
+    <g id="wave-a" class="wave"><path d="M0 -3 V3 M7 -7 V7 M14 -13 V13 M21 -19 V19 M28 -12 V12 M35 -24 V24 M42 -28 V28 M49 -18 V18 M56 -11 V11 M63 -16 V16 M70 -9 V9 M77 -4 V4 M84 -2 V2"/></g>
+    <g id="wave-b" class="wave"><path d="M0 -2 V2 M7 -8 V8 M14 -18 V18 M21 -23 V23 M28 -15 V15 M35 -9 V9 M42 -19 V19 M49 -26 V26 M56 -18 V18 M63 -10 V10 M70 -6 V6 M77 -3 V3"/></g>
+  </defs>
+
+  <rect width="1600" height="854" fill="#ffffff"/>
+  <text class="heading" x="26" y="37">Training-time guidance</text>
+  <path class="axis" marker-end="url(#time-arrow)" d="M660 29 H1570"/>
+  <text class="small muted" x="1570" y="59" text-anchor="end">Time</text>
+
+  <!-- Dialogue audio is context/target; no text is inserted into these waveforms. -->
+  <rect x="16" y="73" width="1568" height="161" rx="8" fill="#f5f7f9"/>
+  <text class="label" x="32" y="131">User speech</text>
+  <text class="center" x="365" y="100">“What</text>
+  <text class="center" x="570" y="100">binds</text>
+  <text class="center" x="805" y="100">quarks</text>
+  <text class="center" x="910" y="100">in</text>
+  <text class="center" x="1010" y="100">a</text>
+  <text class="center" x="1120" y="100">proton?”</text>
+  <path class="axis" d="M300 131 H1558"/>
+  <g transform="translate(300 0) scale(1.2857142857142858 1) translate(-300 0)">
+  <use href="#wave-a" x="300" y="131"/>
+  <use href="#wave-b" x="405" y="131"/>
+  <use href="#wave-a" transform="translate(513 131) scale(.7 .7)"/>
+  <use href="#wave-b" x="647" y="131"/>
+  <use href="#wave-a" transform="translate(759 131) scale(.75 .8)"/>
+  <use href="#wave-a" x="860" y="131"/>
+  <use href="#wave-b" transform="translate(961.5 131) scale(.5 .6)"/>
+  </g>
+  <text class="label" x="32" y="192">Response speech</text>
+  <text class="small muted" x="32" y="222">Training target</text>
+  <path class="axis" d="M300 209 H1558"/>
+  <text class="teal center" x="1400" y="175">“It's the strong force …”</text>
+  <use href="#wave-b" transform="translate(1245 209) scale(.7 .65)"/>
+  <use href="#wave-a" transform="translate(1320 209) scale(.8 .72)"/>
+  <use href="#wave-b" transform="translate(1410 209) scale(.8 .65)"/>
+  <use href="#wave-a" transform="translate(1490 209) scale(.8 .58)"/>
+
+  <!-- Arrow-free dotted guides mean temporal alignment only. -->
+  <path class="guide" d="M435 160 V258 M705 160 V258 M975 160 V258 M435 294 V326 M705 294 V326 M975 294 V326 M1225 294 V326"/>
+  <path d="M1200 114 V296 M1245 186 V234" fill="none" stroke="#b6c8c1" stroke-width="1.4" stroke-dasharray="5 7"/>
+  <rect x="980" y="235" width="225" height="28" fill="#ffffff"/>
+  <text class="small muted" x="1200" y="256" text-anchor="end">User speech ends</text>
+  <text class="small muted" x="1259" y="256">Response starts</text>
+  <text class="small muted" x="32" y="281">User speech</text>
+  <text class="tick muted" x="32" y="310">words observed</text>
+  <path class="axis" d="M300 291 H1558"/>
+  <path class="axis" d="M300 285 V297 M435 285 V297 M705 285 V297 M975 285 V297 M1200 285 V297"/>
+  <text class="tick muted center" x="300" y="276">0%</text>
+  <text class="tick blue center" x="435" y="276">17%</text>
+  <text class="tick blue center" x="705" y="276">33%</text>
+  <text class="tick blue center" x="975" y="276">67%</text>
+  <text class="tick teal center" x="1200" y="276">100%</text>
+
+  <!-- Each method has a separate chronological auxiliary-input lane. -->
+  <g id="original-kame">
+    <text class="label" x="32" y="348">LLM-generated</text>
+    <text class="label" x="32" y="381">(KAME)</text>
+
+    <rect x="308" y="326" width="1266" height="49" rx="7" fill="#f1f5f8"/>
+    <path class="stream" marker-end="url(#time-arrow)" d="M321 350 H1563"/>
+    <rect x="400" y="329" width="70" height="42" rx="5" fill="#dce9f4" stroke="#7493af" stroke-width="1.5"/>
+    <rect x="670" y="329" width="70" height="42" rx="5" fill="#dce9f4" stroke="#7493af" stroke-width="1.5"/>
+    <rect x="940" y="329" width="70" height="42" rx="5" fill="#dce9f4" stroke="#7493af" stroke-width="1.5"/>
+    <rect x="1190" y="329" width="70" height="42" rx="5" fill="#dceee6" stroke="#65998b" stroke-width="1.5"/>
+    <text class="var blue center" x="435" y="360">p₁</text>
+    <text class="var blue center" x="705" y="360">p₂</text>
+    <text class="var blue center" x="975" y="360">p₃</text>
+    <text class="var teal center" x="1225" y="360">y</text>
+    <rect x="1050" y="337" width="51" height="27" fill="#f1f5f8"/>
+    <text class="muted center" x="1075" y="358">…</text>
+    <rect x="1388" y="337" width="51" height="27" fill="#f1f5f8"/>
+    <text class="muted center" x="1413" y="358">…</text>
+
+    <!-- Solid upward arrows are the actual insertion direction. -->
+    <path class="insert-blue" d="M435 398 V374"/>
+    <path class="insert-blue" d="M705 398 V374"/>
+    <path class="insert-blue" d="M975 398 V374"/>
+    <path class="insert-teal" d="M1225 398 V374"/>
+    <rect x="325" y="400" width="220" height="84" rx="7" fill="#edf3f9" stroke="#7493af" stroke-width="1.6"/>
+    <rect x="595" y="400" width="220" height="84" rx="7" fill="#edf3f9" stroke="#7493af" stroke-width="1.6"/>
+    <rect x="865" y="400" width="220" height="84" rx="7" fill="#edf3f9" stroke="#7493af" stroke-width="1.6"/>
+    <rect x="1110" y="400" width="230" height="84" rx="7" fill="#e8f2ee" stroke="#65998b" stroke-width="1.6"/>
+    <text class="center" x="435" y="432">“Could you</text>
+    <text class="center" x="435" y="466">clarify …”</text>
+    <text class="center" x="705" y="432">“It depends</text>
+    <text class="center" x="705" y="466">on what …”</text>
+    <text class="center" x="975" y="432">“The strong</text>
+    <text class="center" x="975" y="466">force binds …”</text>
+    <text class="small teal" x="1355" y="432">Target-response</text>
+    <text class="small teal" x="1355" y="466">guidance</text>
+    <text class="center" x="1225" y="432">“It's the</text>
+    <text class="center" x="1225" y="466">strong force …”</text>
+
+    <path class="insert-blue" d="M435 519 V487"/>
+    <path class="insert-blue" d="M705 519 V487"/>
+    <path class="insert-blue" d="M975 519 V487"/>
+    <path class="insert-teal" d="M1225 519 V487"/>
+    <rect x="360" y="521" width="150" height="43" rx="6" fill="#e5eef6" stroke="#7493af" stroke-width="1.5"/>
+    <rect x="630" y="521" width="150" height="43" rx="6" fill="#e5eef6" stroke="#7493af" stroke-width="1.5"/>
+    <rect x="900" y="521" width="150" height="43" rx="6" fill="#e5eef6" stroke="#7493af" stroke-width="1.5"/>
+    <text class="blue center" x="435" y="551">LLM call</text>
+    <text class="blue center" x="705" y="551">LLM call</text>
+    <text class="blue center" x="975" y="551">LLM call</text>
+    <text class="small teal center" x="1225" y="551">Response transcript</text>
+  </g>
+
+  <g id="randomized">
+    <rect x="16" y="583" width="1568" height="255" rx="8" fill="#fffbf5"/>
+    <text class="label orange" x="32" y="608">Randomized</text>
+    <text class="label orange" x="32" y="641">(ours)</text>
+    <text class="small orange" x="32" y="706">Sampled from the</text>
+    <text class="small orange" x="32" y="737">training corpus</text>
+
+    <rect x="308" y="586" width="1266" height="49" rx="7" fill="#f6f0e6"/>
+    <path class="stream" marker-end="url(#time-arrow)" d="M321 610 H1563"/>
+    <rect x="400" y="589" width="70" height="42" rx="5" fill="#fae6c6" stroke="#ca8d42" stroke-width="1.5"/>
+    <rect x="670" y="589" width="70" height="42" rx="5" fill="#fae6c6" stroke="#ca8d42" stroke-width="1.5"/>
+    <rect x="940" y="589" width="70" height="42" rx="5" fill="#fae6c6" stroke="#ca8d42" stroke-width="1.5"/>
+    <rect x="1190" y="589" width="70" height="42" rx="5" fill="#dceee6" stroke="#65998b" stroke-width="1.5"/>
+    <text class="var orange center" x="435" y="620">r₁</text>
+    <text class="var orange center" x="705" y="620">r₂</text>
+    <text class="var orange center" x="975" y="620">r₃</text>
+    <text class="var teal center" x="1225" y="620">y</text>
+    <rect x="1050" y="597" width="51" height="27" fill="#f6f0e6"/>
+    <text class="muted center" x="1075" y="618">…</text>
+    <rect x="1388" y="597" width="51" height="27" fill="#f6f0e6"/>
+    <text class="muted center" x="1413" y="618">…</text>
+
+    <path class="insert-orange" d="M435 658 V634"/>
+    <path class="insert-orange" d="M705 658 V634"/>
+    <path class="insert-orange" d="M975 658 V634"/>
+    <path class="insert-teal" d="M1225 658 V634"/>
+    <rect x="325" y="660" width="220" height="84" rx="7" fill="#fff0da" stroke="#ca8d42" stroke-width="1.6"/>
+    <rect x="595" y="660" width="220" height="84" rx="7" fill="#fff0da" stroke="#ca8d42" stroke-width="1.6"/>
+    <rect x="865" y="660" width="220" height="84" rx="7" fill="#fff0da" stroke="#ca8d42" stroke-width="1.6"/>
+    <rect x="1110" y="660" width="230" height="84" rx="7" fill="#e8f2ee" stroke="#65998b" stroke-width="1.6"/>
+    <text class="center" x="435" y="692">“The train</text>
+    <text class="center" x="435" y="726">was late …”</text>
+    <text class="center" x="705" y="692">“She plays</text>
+    <text class="center" x="705" y="726">the piano …”</text>
+    <text class="center" x="975" y="692">“We need</text>
+    <text class="center" x="975" y="726">more flour …”</text>
+    <text class="small teal" x="1355" y="692">Target-response</text>
+    <text class="small teal" x="1355" y="726">guidance</text>
+    <text class="center" x="1225" y="692">“It's the</text>
+    <text class="center" x="1225" y="726">strong force …”</text>
+
+    <path class="insert-orange" d="M435 779 V747"/>
+    <path class="insert-orange" d="M705 779 V747"/>
+    <path class="insert-orange" d="M975 779 V747"/>
+    <path class="insert-teal" d="M1225 779 V747"/>
+    <rect x="335" y="781" width="200" height="43" rx="6" fill="#fbeddb" stroke="#ca8d42" stroke-width="1.5"/>
+    <rect x="605" y="781" width="200" height="43" rx="6" fill="#fbeddb" stroke="#ca8d42" stroke-width="1.5"/>
+    <rect x="875" y="781" width="200" height="43" rx="6" fill="#fbeddb" stroke="#ca8d42" stroke-width="1.5"/>
+    <text class="small orange center" x="435" y="811">Random sample</text>
+    <text class="small orange center" x="705" y="811">Random sample</text>
+    <text class="small orange center" x="975" y="811">Random sample</text>
+    <text class="small teal center" x="1225" y="811">Response transcript</text>
+  </g>
+
+</svg>

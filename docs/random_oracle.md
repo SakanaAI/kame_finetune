@@ -1,5 +1,8 @@
 # Randomized Training Guidance
 
+This implementation is based on [Learning Natural Conversational Behavior in Tandem Speech-to-Speech Models with Randomized Guidance](https://arxiv.org/abs/2609.30773).
+See the paper for details.
+
 KAME training uses text guidance, called an oracle, for upcoming spoken responses.
 The random strategy samples guidance from other training dialogues while retaining
 the last available ground-truth hint for each response. It preserves the existing
@@ -8,6 +11,10 @@ Inference still uses the KAME back-end LLM.
 
 The default generation strategy remains `llm`. Both strategies use the same
 preprocessing and training workflow.
+
+![LLM-generated and randomized training guidance](figures/randomized_guidance_overview.svg)
+
+Schematic comparison of LLM-generated and randomized training guidance (Figure 1 from the paper).
 
 To try generation first, use the [synthetic text-only demo](../data/random_oracle_sample/README.md).
 It runs on CPU without an API key or recorded audio and shows the generated oracle JSON.
