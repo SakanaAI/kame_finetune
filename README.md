@@ -21,6 +21,8 @@
 
 Kame is an oracle-enabled extension of Moshi for full-duplex spoken dialogue. This repository provides the preprocessing, finetuning, checkpoint conversion, and inference workflow for Kame.
 
+An oracle provides text guidance for upcoming spoken responses during training.
+
 The public preprocessing entry point is a canonical dataset layout built from stereo audio and word-level transcripts:
 
 - `audio/<dialogue_id>.wav`
@@ -95,7 +97,7 @@ If oracle predictions are already present, `oracle_raw/*.json` should follow thi
 
 The `hint` field is intentionally empty when `current_spoken_ratio <= 0.5`.
 
-Random-oracle files also include `use_hint` to select the guidance text. See [Oracle Selection Format](docs/random_oracle.md#oracle-selection-format) for this optional field and compatibility with existing data.
+Random-oracle files also include a `use_hint` flag; see [Oracle Selection Format](docs/random_oracle.md#oracle-selection-format).
 
 ## Standard Preprocessing
 
@@ -220,7 +222,7 @@ The current training implementation requires DeepSpeed, so both examples use Acc
 
 After training, convert checkpoints in two stages:
 
-The examples below use `output/moshiko-finetuned/step_10000`. Replace this with a checkpoint saved by your run. A completed three-step smoke test saves to `output/moshiko-finetuned-cpuoffload-smoke/step_3`; use that training directory and step in the conversion and inference paths below.
+Use your run's checkpoint paths below. The three-step smoke test saves to `output/moshiko-finetuned-cpuoffload-smoke/step_3`.
 
 ### 1. Convert DeepSpeed checkpoints to fp32 safetensors
 
