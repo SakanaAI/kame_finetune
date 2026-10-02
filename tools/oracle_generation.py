@@ -287,14 +287,6 @@ class OracleGenerator:
 
         return {"speaker": current_speaker, "ratio": ratio}
 
-    def _get_next_utterance_hint(
-        self,
-        all_words: Sequence[Word],
-        words_so_far: Sequence[Word],
-        current_speaker: str,
-    ) -> str:
-        return self._get_next_utterance(all_words, words_so_far, current_speaker)[1]
-
     def _get_next_utterance(
         self,
         all_words: Sequence[Word],
