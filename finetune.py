@@ -30,6 +30,7 @@ from utils import (
     preprocess_function,
     set_mpi_env_vars,
 )
+from utils.dataset_schema import prepared_dataset_features, preprocessed_dataset_features
 
 logger = get_logger(__name__)
 
@@ -564,6 +565,8 @@ def _load_train_dataset(
     moshi_lm: MoshiForFinetuning,
 ):
     preprocessing_base = _build_preprocessing_kwargs(args, moshi_lm)
+    input_features = prepared_dataset_features(use_oracle=args.use_oracle)
+    output_features = preprocessed_dataset_features(use_oracle=args.use_oracle)
 
     with accelerator.main_process_first():
         if args.train_data_file_speakers is None:
@@ -573,6 +576,8 @@ def _load_train_dataset(
                 split="train",
                 data_files={"train": args.train_data_files},
                 cache_dir=args.dataset_cache_dir,
+                features=input_features,
+                columns=list(input_features),
             )
             train_dataset = train_dataset.map(
                 preprocess_function,
@@ -580,6 +585,7 @@ def _load_train_dataset(
                 batched=True,
                 num_proc=args.dataset_processing_workers,
                 fn_kwargs=preprocessing_base | {"speakers": args.moshi_speakers},
+                features=output_features,
                 desc="Preprocessing train dataset",
             )
             return train_dataset
@@ -595,6 +601,8 @@ def _load_train_dataset(
                 split="train",
                 data_files={"train": [data_file]},
                 cache_dir=args.dataset_cache_dir,
+                features=input_features,
+                columns=list(input_features),
             )
             train_dataset = train_dataset.map(
                 preprocess_function,
@@ -602,6 +610,7 @@ def _load_train_dataset(
                 batched=True,
                 num_proc=args.dataset_processing_workers,
                 fn_kwargs=preprocessing_base | {"speakers": speakers},
+                features=output_features,
                 desc=f"Preprocessing {os.path.basename(data_file)}",
             )
             train_datasets.append(train_dataset)
@@ -1032,6 +1041,7 @@ def main():
         preprocessing_kwargs = _build_preprocessing_kwargs(args, moshi_lm) | {
             "speakers": args.moshi_speakers
         }
+        input_features = prepared_dataset_features(use_oracle=args.use_oracle)
         with accelerator.main_process_first():
             logger.info(f"Loading eval dataset from {args.eval_data_files}")
             eval_dataset = load_dataset(
@@ -1039,6 +1049,8 @@ def main():
                 split="validation",
                 data_files={"validation": args.eval_data_files},
                 cache_dir=args.dataset_cache_dir,
+                features=input_features,
+                columns=list(input_features),
             )
             eval_dataset = eval_dataset.map(
                 preprocess_function,
@@ -1046,6 +1058,7 @@ def main():
                 batched=True,
                 num_proc=args.dataset_processing_workers,
                 fn_kwargs=preprocessing_kwargs,
+                features=preprocessed_dataset_features(use_oracle=args.use_oracle),
                 desc="Preprocessing validation dataset",
             )
     else:

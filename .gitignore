@@ -22,6 +22,10 @@ data/spokenwoz_sample/*
 !data/spokenwoz_sample/audio
 !data/spokenwoz_sample/oracle_raw
 !data/spokenwoz_sample/README.md
+!data/random_oracle_sample
+data/random_oracle_sample/*
+!data/random_oracle_sample/text
+!data/random_oracle_sample/README.md
 
 processed_data
 

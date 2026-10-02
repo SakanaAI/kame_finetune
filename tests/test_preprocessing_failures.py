@@ -287,11 +287,6 @@ def test_prepare_dataset_filters_non_npz_and_allows_output_prefix_without_dir(
 
     monkeypatch.chdir(tmp_path)
 
-    def fake_to_parquet(self, path, index=False):
-        Path(path).write_text("ok")
-
-    monkeypatch.setattr(prepare_dataset.pd.DataFrame, "to_parquet", fake_to_parquet, raising=False)
-
     args = SimpleNamespace(
         tokenized_text_dir=str(tokenized_text_dir),
         tokenized_audio_dir=str(tokenized_audio_dir),
@@ -304,6 +299,9 @@ def test_prepare_dataset_filters_non_npz_and_allows_output_prefix_without_dir(
     prepare_dataset.main(args)
 
     assert (tmp_path / "train-001-of-001.parquet").exists()
+    assert prepare_dataset.pq.read_table("train-001-of-001.parquet")["A"].to_pylist() == [
+        [[1, 2], [10, 11]]
+    ]
 
 
 def test_prepare_dataset_raises_on_text_audio_mismatch(tmp_path, monkeypatch):
